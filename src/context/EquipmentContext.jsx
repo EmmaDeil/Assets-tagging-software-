@@ -27,13 +27,13 @@ export const EquipmentContext = createContext(null);
  */
 export function EquipmentProvider({ children }) {
   // State: Array that stores all equipment items
-  // Each item is an object with properties: id, name, model, serial, location, notes
+  // Each item is an object with properties: id, name, model, serial, location, notes, maintenancePeriod
   const [items, setItems] = useState([]);
 
   /**
    * Add a new equipment item to the list
    *
-   * @param {Object} data - The equipment data (name, model, serial, location, notes)
+   * @param {Object} data - The equipment data (name, model, serial, location, notes, maintenancePeriod)
    * @returns {Object} The created equipment item with its generated ID
    */
   function addEquipment(data) {

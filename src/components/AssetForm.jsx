@@ -6,7 +6,7 @@
  * in the EquipmentContext so it can be displayed in the table.
  *
  * Features:
- * - Input fields for equipment details (name, model, serial, location, notes)
+ * - Input fields for equipment details (name, model, serial, location, notes, maintenance period)
  * - Form validation (name is required)
  * - Automatic form reset after submission
  * - User feedback via alert showing the created equipment ID
@@ -27,6 +27,7 @@ export default function AssetForm() {
     serial: "", // Serial number
     location: "", // Physical location of the equipment
     notes: "", // Additional notes or description
+    maintenancePeriod: "", // Maintenance period (e.g., "Every 6 months", "Annually")
   });
 
   /**
@@ -56,7 +57,14 @@ export default function AssetForm() {
     const created = addEquipment(form);
 
     // Reset all form fields to empty strings so user can add another item
-    setForm({ name: "", model: "", serial: "", location: "", notes: "" });
+    setForm({
+      name: "",
+      model: "",
+      serial: "",
+      location: "",
+      notes: "",
+      maintenancePeriod: "",
+    });
 
     // Show a confirmation message with the generated equipment ID
     alert(`Created equipment with id: ${created.id}`);
@@ -118,6 +126,28 @@ export default function AssetForm() {
           onChange={onChange}
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
+      </label>
+
+      {/* Maintenance Period - optional dropdown */}
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">
+          Maintenance Period
+        </span>
+        <select
+          name="maintenancePeriod"
+          value={form.maintenancePeriod}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+        >
+          <option value="">Select maintenance period</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Every 3 Months">Every 3 Months</option>
+          <option value="Every 6 Months">Every 6 Months</option>
+          <option value="Annually">Annually</option>
+          <option value="Every 2 Years">Every 2 Years</option>
+          <option value="As Needed">As Needed</option>
+        </select>
       </label>
 
       {/* Submit button */}

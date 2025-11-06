@@ -4,7 +4,7 @@
  * Displays all equipment/assets in a table format with QR codes.
  * Each row shows:
  * - A 64x64 QR code containing the equipment's unique ID
- * - All equipment details (name, model, serial, location, notes)
+ * - All equipment details (name, model, serial, location, notes, maintenance period)
  * - Action buttons: "View" to select equipment and "Print" to print QR label
  *
  * This component reads from EquipmentContext to get the list of all equipment.
@@ -25,7 +25,7 @@ import QRCodePrint from "./QRCodePrint";
 export default function EquipmentTable({ onSelect }) {
   // Get the list of all equipment items from context
   const { items } = useContext(EquipmentContext);
-  
+
   // State: Track which equipment is being printed (null when not printing)
   const [printingEquipment, setPrintingEquipment] = useState(null);
 
@@ -39,15 +39,24 @@ export default function EquipmentTable({ onSelect }) {
           <thead className="bg-gray-100">
             <tr>
               <th className="text-left p-3 font-semibold text-gray-700">QR</th>
-              <th className="text-left p-3 font-semibold text-gray-700">Name</th>
-              <th className="text-left p-3 font-semibold text-gray-700">Model</th>
+              <th className="text-left p-3 font-semibold text-gray-700">
+                Name
+              </th>
+              <th className="text-left p-3 font-semibold text-gray-700">
+                Model
+              </th>
               <th className="text-left p-3 font-semibold text-gray-700">
                 Serial
               </th>
               <th className="text-left p-3 font-semibold text-gray-700">
                 Location
               </th>
-              <th className="text-left p-3 font-semibold text-gray-700">Notes</th>
+              <th className="text-left p-3 font-semibold text-gray-700">
+                Notes
+              </th>
+              <th className="text-left p-3 font-semibold text-gray-700">
+                Maintenance Period
+              </th>
               <th className="text-left p-3 font-semibold text-gray-700">
                 Actions
               </th>
@@ -58,7 +67,7 @@ export default function EquipmentTable({ onSelect }) {
             {/* Show a message if no equipment has been added yet */}
             {items.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-4 text-center text-gray-500">
+                <td colSpan={8} className="p-4 text-center text-gray-500">
                   No equipment yet
                 </td>
               </tr>
@@ -84,6 +93,7 @@ export default function EquipmentTable({ onSelect }) {
                 <td className="p-3 text-gray-600">{it.serial}</td>
                 <td className="p-3 text-gray-600">{it.location}</td>
                 <td className="p-3 text-gray-600">{it.notes}</td>
+                <td className="p-3 text-gray-600">{it.maintenancePeriod}</td>
 
                 {/* Actions column with View and Print buttons */}
                 <td className="p-3">
@@ -108,7 +118,7 @@ export default function EquipmentTable({ onSelect }) {
           </tbody>
         </table>
       </div>
-      
+
       {/* Print modal - shown when user clicks Print button */}
       {printingEquipment && (
         <QRCodePrint

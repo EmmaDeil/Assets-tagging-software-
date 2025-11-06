@@ -17,7 +17,7 @@
  * 1. User fills out AssetForm → equipment saved to EquipmentContext
  * 2. EquipmentTable reads from EquipmentContext and displays all equipment
  * 3. Each equipment row shows a QR code containing its unique ID
- * 4. User can scan a QR code → full equipment details are displayed (name, model, serial, location, notes)
+ * 4. User can scan a QR code → full equipment details are displayed (name, model, serial, location, notes, maintenance period)
  * 5. User clicks "View" on a table row → equipment ID is shown
  * 6. User clicks "Print" on a table row → print dialog opens with QR label
  */
@@ -150,6 +150,17 @@ function AppContent() {
                             </p>
                             <p className="text-green-900">
                               {scannedEquipment.notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {scannedEquipment.maintenancePeriod && (
+                          <div className="border-b border-green-200 pb-2">
+                            <p className="text-xs text-green-600 font-medium uppercase">
+                              Maintenance Period
+                            </p>
+                            <p className="text-green-900">
+                              {scannedEquipment.maintenancePeriod}
                             </p>
                           </div>
                         )}
