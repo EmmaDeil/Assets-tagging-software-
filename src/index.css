@@ -5,3 +5,27 @@ body {
   background-color: #f9fafb;
   color: #111827;
 }
+
+/* Print styles - hide everything except the QR code print modal */
+@media print {
+  /* Hide the entire page body content */
+  body > #root > * {
+    display: none !important;
+  }
+
+  /* Show only the print modal content */
+  body > #root > * > .print-qr-container {
+    display: block !important;
+  }
+
+  /* Remove all backgrounds, shadows, and borders when printing */
+  * {
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure only QR code content is visible */
+  .print-hidden {
+    display: none !important;
+  }
+}

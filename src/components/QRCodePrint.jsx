@@ -45,11 +45,11 @@ export default function QRCodePrint({ equipment, onClose }) {
   if (!equipment) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:bg-white print:relative print:inset-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print-qr-container">
       {/* Print preview container - visible on screen, optimized for print */}
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 print:shadow-none print:max-w-full">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 print:shadow-none print:max-w-full print:rounded-none">
         {/* Header - hidden when printing */}
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center print:hidden">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center print-hidden">
           <h3 className="text-lg font-semibold text-gray-900">
             Print QR Code Label
           </h3>
@@ -67,12 +67,15 @@ export default function QRCodePrint({ equipment, onClose }) {
           {/* QR Code Label - This is what gets printed */}
           <div className="border-2 border-dashed border-gray-300 p-6 rounded-lg print:border-none print:p-0">
             {/* QR Code - Large for easy scanning - ONLY THIS PRINTS */}
-            <div className="flex justify-center">
+            <div
+              className="flex justify-center print:block"
+              id="qr-code-to-print"
+            >
               <QRCodeGenerator value={equipment.id} size={200} />
             </div>
 
             {/* Equipment Details - SHOWN ON SCREEN ONLY, HIDDEN WHEN PRINTING */}
-            <div className="space-y-2 text-center mt-4 print:hidden">
+            <div className="space-y-2 text-center mt-4 print-hidden">
               <h4 className="text-xl font-bold text-gray-900 wrap-break-word">
                 {equipment.name}
               </h4>
@@ -105,7 +108,7 @@ export default function QRCodePrint({ equipment, onClose }) {
           </div>
 
           {/* Instructions - hidden when printing */}
-          <div className="mt-4 text-sm text-gray-600 text-center print:hidden">
+          <div className="mt-4 text-sm text-gray-600 text-center print-hidden">
             <p>Only the QR code will be printed.</p>
             <p className="text-xs mt-1">
               Tip: Use "Print to PDF" to save QR codes digitally.
@@ -114,7 +117,7 @@ export default function QRCodePrint({ equipment, onClose }) {
         </div>
 
         {/* Footer buttons - hidden when printing */}
-        <div className="p-4 border-t border-gray-200 flex gap-2 justify-end print:hidden">
+        <div className="p-4 border-t border-gray-200 flex gap-2 justify-end print-hidden">
           <button
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
