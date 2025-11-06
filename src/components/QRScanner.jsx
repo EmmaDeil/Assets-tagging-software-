@@ -196,11 +196,18 @@ export default function QRScanner({ onDetected }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="flex flex-col gap-4">
       {/* Control buttons and file input */}
-      <div>
+      <div className="flex flex-wrap gap-2 items-center">
         {/* Toggle camera scanning on/off */}
-        <button onClick={() => setRunning((r) => !r)}>
+        <button
+          onClick={() => setRunning((r) => !r)}
+          className={`px-4 py-2 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+            running
+              ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+              : "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+          }`}
+        >
           {running ? "Stop camera" : "Start camera scan"}
         </button>
 
@@ -209,24 +216,28 @@ export default function QRScanner({ onDetected }) {
           type="file"
           accept="image/*" // Only allow image files
           onChange={handleFile}
-          style={{ marginLeft: 8 }}
+          className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
         />
       </div>
 
       {/* Video and canvas elements */}
-      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+      <div className="flex gap-4 items-start">
         {/* Video element shows the live camera feed */}
         <video
           ref={videoRef}
-          style={{ width: 320, height: 240, background: "#000" }}
+          className="w-80 h-60 bg-black rounded-lg shadow-md"
         />
 
         {/* Canvas is hidden but used for processing frames */}
-        <canvas ref={canvasRef} style={{ display: "none" }} />
+        <canvas ref={canvasRef} className="hidden" />
       </div>
 
       {/* Display error messages if any */}
-      {error && <div style={{ color: "red" }}>{error}</div>}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

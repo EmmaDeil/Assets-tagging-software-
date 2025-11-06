@@ -63,53 +63,71 @@ export default function AssetForm() {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      style={{
-        gap: 8, // Space between form fields
-        display: "flex", // Use flexbox layout
-        flexDirection: "column", // Stack fields vertically
-        maxWidth: 420, // Limit form width for better readability
-      }}
-    >
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       {/* Equipment Name - REQUIRED field */}
-      <label>
-        Name
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Name</span>
         <input
           name="name"
           value={form.name}
           onChange={onChange}
           required // HTML5 validation: form won't submit if empty
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </label>
 
       {/* Equipment Model - optional */}
-      <label>
-        Model
-        <input name="model" value={form.model} onChange={onChange} />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Model</span>
+        <input
+          name="model"
+          value={form.model}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </label>
 
       {/* Serial Number - optional */}
-      <label>
-        Serial
-        <input name="serial" value={form.serial} onChange={onChange} />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Serial</span>
+        <input
+          name="serial"
+          value={form.serial}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </label>
 
       {/* Location - optional */}
-      <label>
-        Location
-        <input name="location" value={form.location} onChange={onChange} />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Location</span>
+        <input
+          name="location"
+          value={form.location}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </label>
 
       {/* Notes - optional */}
-      <label>
-        Notes
-        <input name="notes" value={form.notes} onChange={onChange} />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Notes</span>
+        <input
+          name="notes"
+          value={form.notes}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
       </label>
 
       {/* Submit button */}
       <div>
-        <button type="submit">Add asset</button>
+        <button
+          type="submit"
+          className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+          Add asset
+        </button>
       </div>
     </form>
   );

@@ -25,10 +25,10 @@ export default function QRCodeGenerator({ value, size = 64 }) {
   // We wrap it in a div to control the exact size and layout
   return (
     <div
+      className="inline-block"
       style={{
-        width: size, // Set exact width
-        height: size, // Set exact height
-        display: "inline-block", // Allow it to sit inline with other elements
+        width: size, // Set exact width (dynamic value from prop)
+        height: size, // Set exact height (dynamic value from prop)
       }}
     >
       {/* 
