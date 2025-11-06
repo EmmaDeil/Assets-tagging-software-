@@ -28,6 +28,7 @@ export default function AssetForm() {
     location: "", // Physical location of the equipment
     notes: "", // Additional notes or description
     maintenancePeriod: "", // Maintenance period (e.g., "Every 6 months", "Annually")
+    status: "In Use", // Asset status (default: "In Use")
   });
 
   /**
@@ -64,6 +65,7 @@ export default function AssetForm() {
       location: "",
       notes: "",
       maintenancePeriod: "",
+      status: "In Use",
     });
 
     // Show a confirmation message with the generated equipment ID
@@ -147,6 +149,21 @@ export default function AssetForm() {
           <option value="Annually">Annually</option>
           <option value="Every 2 Years">Every 2 Years</option>
           <option value="As Needed">As Needed</option>
+        </select>
+      </label>
+
+      {/* Status - optional dropdown */}
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-gray-700">Status</span>
+        <select
+          name="status"
+          value={form.status}
+          onChange={onChange}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+        >
+          <option value="In Use">In Use</option>
+          <option value="In Maintenance">In Maintenance</option>
+          <option value="Retired">Retired</option>
         </select>
       </label>
 

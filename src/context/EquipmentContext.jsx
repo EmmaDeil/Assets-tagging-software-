@@ -27,13 +27,32 @@ export const EquipmentContext = createContext(null);
  */
 export function EquipmentProvider({ children }) {
   // State: Array that stores all equipment items
-  // Each item is an object with properties: id, name, model, serial, location, notes, maintenancePeriod
+  // Each item is an object with properties: id, name, model, serial, location, notes, maintenancePeriod, status
   const [items, setItems] = useState([]);
+
+  // State: Array that stores recent activity/actions on equipment
+  const [activities, setActivities] = useState([]);
+
+  /**
+   * Add a new activity to the activity log
+   *
+   * @param {Object} activity - The activity data (assetName, action, actionType, user, icon)
+   */
+  function addActivity(activity) {
+    const timeAgo = "Just now";
+    const newActivity = {
+      ...activity,
+      date: timeAgo,
+      timestamp: Date.now(),
+    };
+    // Keep only the last 20 activities
+    setActivities((prev) => [newActivity, ...prev].slice(0, 20));
+  }
 
   /**
    * Add a new equipment item to the list
    *
-   * @param {Object} data - The equipment data (name, model, serial, location, notes, maintenancePeriod)
+   * @param {Object} data - The equipment data (name, model, serial, location, notes, maintenancePeriod, status)
    * @returns {Object} The created equipment item with its generated ID
    */
   function addEquipment(data) {
@@ -43,10 +62,20 @@ export function EquipmentProvider({ children }) {
       data.id || `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     // Create the complete item object by spreading the input data and adding the ID
-    const item = { ...data, id };
+    // Set default status to "In Use" if not provided
+    const item = { ...data, id, status: data.status || "In Use" };
 
     // Add the new item to the beginning of the array (newest first)
     setItems((prev) => [item, ...prev]);
+
+    // Log the activity
+    addActivity({
+      assetName: item.name,
+      action: "Added",
+      actionType: "Added",
+      user: "Admin",
+      icon: "📦",
+    });
 
     // Return the created item so the caller can use it (e.g., show the ID to the user)
     return item;
@@ -64,9 +93,11 @@ export function EquipmentProvider({ children }) {
   }
 
   // Provide the equipment data and functions to all child components
-  // Any component can access: items (array), addEquipment (function), getById (function)
+  // Any component can access: items (array), activities (array), addEquipment (function), getById (function), addActivity (function)
   return (
-    <EquipmentContext.Provider value={{ items, addEquipment, getById }}>
+    <EquipmentContext.Provider
+      value={{ items, activities, addEquipment, getById, addActivity }}
+    >
       {children}
     </EquipmentContext.Provider>
   );
