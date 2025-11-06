@@ -109,7 +109,9 @@ const equipmentSchema = new mongoose.Schema(
         name: String,
         type: String,
         id: String,
-        url: String, // File URL if stored in cloud storage
+        data: String, // Base64 encoded file data stored in MongoDB
+        uploadDate: Date,
+        size: Number, // File size in bytes
       },
     ],
     assignedTo: {

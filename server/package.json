@@ -9,7 +9,15 @@
     "dev": "node server.js",
     "seed": "node seed.js"
   },
-  "keywords": ["asset", "management", "mongodb", "express"],
+  "keywords": [
+    "asset",
+    "management",
+    "mongodb",
+    "express"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "multer": "^2.0.2"
+  }
 }
