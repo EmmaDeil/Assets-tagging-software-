@@ -15,6 +15,7 @@ const equipmentRoutes = require('./routes/equipment');
 const activityRoutes = require('./routes/activities');
 const userRoutes = require('./routes/users');
 const tagRoutes = require('./routes/tags');
+const maintenanceRoutes = require('./routes/maintenance');
 
 // Initialize Express app
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/equipment', equipmentRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tags', tagRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

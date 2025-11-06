@@ -514,21 +514,6 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                 </select>
               </label>
 
-              {/* Department */}
-              <label className="flex flex-col col-span-1 md:col-span-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2">
-                  Department
-                </span>
-                <input
-                  type="text"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
-                  placeholder="e.g., IT Department, Finance, HR"
-                />
-              </label>
-
               {/* Model Number */}
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2">
