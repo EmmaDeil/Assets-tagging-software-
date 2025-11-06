@@ -196,9 +196,10 @@ export default function AdvancedSearch({
               >
                 <option>Any Status</option>
                 <option>In Use</option>
-                <option>In Maintenance</option>
+                <option>Available</option>
+                <option>Under Maintenance</option>
                 <option>Retired</option>
-                <option>In Storage</option>
+                <option>Lost</option>
               </select>
             </div>
 

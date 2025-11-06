@@ -82,8 +82,19 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     notes: "",
   });
 
+  // State: Documents
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [documents, setDocuments] = useState([]);
+
   // Find the asset by ID from the global items array
   const asset = items.find((item) => item.id === assetId);
+
+  // Initialize documents from asset data
+  useEffect(() => {
+    if (asset && asset.attachedFiles) {
+      setDocuments(asset.attachedFiles);
+    }
+  }, [asset]);
 
   // Fetch maintenance records when component mounts or assetId changes
   useEffect(() => {
@@ -224,6 +235,102 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     return statusConfig[status] || statusConfig.Scheduled;
   };
 
+  /**
+   * Handle document upload
+   */
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB");
+      return;
+    }
+
+    setUploadingDocument(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("document", file);
+
+      const response = await fetch(
+        `http://localhost:5000/api/equipment/${asset.id}/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments((prev) => [...prev, data.file]);
+        // Reset file input
+        e.target.value = "";
+      } else {
+        const error = await response.json();
+        alert(error.message || "Failed to upload document");
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("Failed to upload document. Please try again.");
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  /**
+   * Handle document deletion
+   */
+  const handleDeleteDocument = async (fileId, fileName) => {
+    if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/equipment/${asset.id}/document/${fileId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setDocuments((prev) => prev.filter((doc) => doc.id !== fileId));
+      } else {
+        const error = await response.json();
+        alert(error.message || "Failed to delete document");
+      }
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      alert("Failed to delete document. Please try again.");
+    }
+  };
+
+  /**
+   * Format file size for display
+   */
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
+
+  /**
+   * Get file icon based on type
+   */
+  const getFileIcon = (type) => {
+    if (type.includes("pdf")) return "picture_as_pdf";
+    if (type.includes("word") || type.includes("document"))
+      return "description";
+    if (type.includes("excel") || type.includes("spreadsheet"))
+      return "table_chart";
+    if (type.includes("image")) return "image";
+    return "insert_drive_file";
+  };
+
   // Handle case where asset ID doesn't match any existing asset
   if (!asset) {
     return (
@@ -252,7 +359,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
    * Returns color scheme object for displaying asset status with appropriate colors.
    * Supports both light and dark modes with tailwind classes.
    *
-   * @param {string} status - Asset status ("In Use", "In Maintenance", "Retired", "In Storage")
+   * @param {string} status - Asset status ("In Use", "Under Maintenance", "Retired", "Available", "Lost")
    * @returns {Object} Style configuration with bg, text, and dot color classes
    */
   const getStatusBadge = (status) => {
@@ -262,7 +369,12 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
         text: "text-green-700 dark:text-green-400",
         dot: "bg-green-600",
       },
-      "In Maintenance": {
+      Available: {
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-400",
+        dot: "bg-blue-600",
+      },
+      "Under Maintenance": {
         bg: "bg-yellow-100 dark:bg-yellow-900/30",
         text: "text-yellow-700 dark:text-yellow-400",
         dot: "bg-yellow-600",
@@ -272,13 +384,13 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
         text: "text-red-700 dark:text-red-400",
         dot: "bg-red-600",
       },
-      "In Storage": {
+      Lost: {
         bg: "bg-gray-100 dark:bg-gray-900/30",
         text: "text-gray-700 dark:text-gray-400",
         dot: "bg-gray-600",
       },
     };
-    const config = statusConfig[status] || statusConfig["In Storage"];
+    const config = statusConfig[status] || statusConfig["Available"];
 
     return (
       <div
@@ -587,16 +699,106 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
 
                 {/* Documents Tab */}
                 {activeTab === "documents" && (
-                  <div className="text-center py-12">
-                    <span className="material-symbols-outlined text-gray-400 text-5xl">
-                      description
-                    </span>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">
-                      No documents uploaded
-                    </p>
-                    <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                      Upload Document
-                    </button>
+                  <div className="p-6">
+                    {/* Upload Section */}
+                    <div className="mb-6">
+                      <label className="flex items-center justify-center w-full h-32 px-4 transition bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg appearance-none cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 focus:outline-none">
+                        <span className="flex items-center space-x-2">
+                          <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">
+                            upload_file
+                          </span>
+                          <span className="font-medium text-gray-600 dark:text-gray-400">
+                            {uploadingDocument
+                              ? "Uploading..."
+                              : "Drop files to attach, or browse"}
+                          </span>
+                        </span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={handleDocumentUpload}
+                          disabled={uploadingDocument}
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif"
+                        />
+                      </label>
+                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Supported formats: PDF, DOC, XLS, TXT, Images (Max 10MB)
+                      </p>
+                    </div>
+
+                    {/* Documents List */}
+                    {documents.length > 0 ? (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                          Uploaded Documents ({documents.length})
+                        </h3>
+                        {documents.map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          >
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl">
+                                {getFileIcon(doc.type)}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {doc.name}
+                                </p>
+                                <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                                  <span>{formatFileSize(doc.size)}</span>
+                                  <span>•</span>
+                                  <span>
+                                    {doc.uploadDate
+                                      ? new Date(
+                                          doc.uploadDate
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <a
+                                href={`http://localhost:5000/api/equipment/${asset.id}/document/${doc.id}/download`}
+                                download={doc.name}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
+                                title="Download"
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  download
+                                </span>
+                              </a>
+                              <button
+                                onClick={() =>
+                                  handleDeleteDocument(doc.id, doc.name)
+                                }
+                                className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+                                title="Delete"
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  delete
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <span className="material-symbols-outlined text-gray-400 text-5xl">
+                          description
+                        </span>
+                        <p className="mt-4 text-gray-600 dark:text-gray-400">
+                          No documents uploaded yet
+                        </p>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+                          Upload your first document using the area above
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

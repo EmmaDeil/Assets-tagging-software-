@@ -50,27 +50,32 @@ export default function AssetsManagement({
   const getStatusBadge = (status) => {
     const badges = {
       "In Use": {
-        bg: "bg-green-100 dark:bg-green-900/50",
-        text: "text-green-700 dark:text-green-300",
-        dot: "bg-green-500",
+        bg: "bg-green-100 dark:bg-green-900/30",
+        text: "text-green-700 dark:text-green-400",
+        dot: "bg-green-600",
       },
-      "In Maintenance": {
-        bg: "bg-yellow-100 dark:bg-yellow-800/50",
-        text: "text-yellow-800 dark:text-yellow-300",
-        dot: "bg-yellow-500",
+      Available: {
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-700 dark:text-blue-400",
+        dot: "bg-blue-600",
+      },
+      "Under Maintenance": {
+        bg: "bg-yellow-100 dark:bg-yellow-900/30",
+        text: "text-yellow-700 dark:text-yellow-400",
+        dot: "bg-yellow-600",
       },
       Retired: {
         bg: "bg-red-100 dark:bg-red-900/50",
         text: "text-red-700 dark:text-red-300",
         dot: "bg-red-500",
       },
-      "In Storage": {
+      Lost: {
         bg: "bg-gray-100 dark:bg-gray-700/50",
         text: "text-gray-700 dark:text-gray-300",
         dot: "bg-gray-500",
       },
     };
-    return badges[status] || badges["In Storage"];
+    return badges[status] || badges["Available"];
   };
 
   /**

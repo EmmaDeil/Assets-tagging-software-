@@ -23,7 +23,7 @@
  * - Description - Detailed notes and information
  * - Model - Model number/name
  * - Serial Number - Manufacturer serial number
- * - Status - Current status (In Use, In Maintenance, Retired, In Storage)
+ * - Status - Current status (In Use, Available, Under Maintenance, Retired, Lost)
  * - Maintenance Period - Scheduled maintenance frequency
  *
  * Props:

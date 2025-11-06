@@ -54,13 +54,16 @@ const Reports = () => {
     }
 
     // Filter by date range
-    const filterDate = (dateString) => {
+    const filterDate = (item) => {
+      const dateString = item.acquisitionDate || item.purchaseDate || item.createdAt;
       if (!dateString) return true;
+      
       const itemDate = new Date(dateString);
 
       if (dateRange === "Custom Range" && customDateFrom && customDateTo) {
         const fromDate = new Date(customDateFrom);
         const toDate = new Date(customDateTo);
+        toDate.setHours(23, 59, 59, 999);
         return itemDate >= fromDate && itemDate <= toDate;
       }
 
@@ -80,7 +83,7 @@ const Reports = () => {
       }
     };
 
-    filtered = filtered.filter((item) => filterDate(item.dateAdded));
+    filtered = filtered.filter((item) => filterDate(item));
 
     setFilteredData(filtered);
   }, [items, assetCategory, dateRange, customDateFrom, customDateTo]);
@@ -93,9 +96,10 @@ const Reports = () => {
     // Status distribution for timeline
     const statusCounts = {
       "In Use": 0,
-      Maintenance: 0,
-      Retired: 0,
-      Available: 0,
+      "Under Maintenance": 0,
+      "Retired": 0,
+      "Available": 0,
+      "Lost": 0,
     };
 
     reportData.forEach((item) => {

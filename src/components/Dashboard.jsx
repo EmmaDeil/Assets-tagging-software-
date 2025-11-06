@@ -5,7 +5,7 @@
  * This component provides a comprehensive view of all assets in the system.
  *
  * Features:
- * - Asset statistics cards (Total, In Use, In Maintenance, Retired)
+ * - Asset statistics cards (Total, In Use, Under Maintenance, Retired)
  * - Visual pie chart showing asset status distribution
  * - Recent activity table showing latest asset actions
  * - Responsive design that works on all screen sizes
@@ -28,14 +28,59 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
     dateFrom: "",
     dateTo: "",
   });
+  const [appliedFilters, setAppliedFilters] = useState({
+    status: "",
+    category: "",
+    location: "",
+    dateFrom: "",
+    dateTo: "",
+  });
 
-  // Calculate asset statistics
-  const totalAssets = assets.length;
-  const inUse = assets.filter((a) => a.status === "In Use").length;
-  const inMaintenance = assets.filter(
-    (a) => a.status === "In Maintenance"
+  // Apply filters to assets
+  const filteredAssets = assets.filter((asset) => {
+    // Status filter
+    if (appliedFilters.status && asset.status !== appliedFilters.status) {
+      return false;
+    }
+
+    // Category filter
+    if (appliedFilters.category && asset.category !== appliedFilters.category) {
+      return false;
+    }
+
+    // Location filter
+    if (appliedFilters.location && asset.location !== appliedFilters.location) {
+      return false;
+    }
+
+    // Date range filter (based on acquisition/purchase date)
+    if (appliedFilters.dateFrom || appliedFilters.dateTo) {
+      const assetDate = new Date(
+        asset.acquisitionDate || asset.purchaseDate || asset.createdAt
+      );
+
+      if (appliedFilters.dateFrom) {
+        const fromDate = new Date(appliedFilters.dateFrom);
+        if (assetDate < fromDate) return false;
+      }
+
+      if (appliedFilters.dateTo) {
+        const toDate = new Date(appliedFilters.dateTo);
+        toDate.setHours(23, 59, 59, 999); // Include the entire end date
+        if (assetDate > toDate) return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Calculate asset statistics from filtered data
+  const totalAssets = filteredAssets.length;
+  const inUse = filteredAssets.filter((a) => a.status === "In Use").length;
+  const inMaintenance = filteredAssets.filter(
+    (a) => a.status === "Under Maintenance"
   ).length;
-  const retired = assets.filter((a) => a.status === "Retired").length;
+  const retired = filteredAssets.filter((a) => a.status === "Retired").length;
 
   // Calculate percentages for the chart
   const inUsePercent =
@@ -56,20 +101,21 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
 
   // Apply filters
   const handleApplyFilters = () => {
-    // Filter logic would go here
-    console.log("Applying filters:", filters);
+    setAppliedFilters(filters);
     setShowFilterModal(false);
   };
 
   // Reset filters
   const handleResetFilters = () => {
-    setFilters({
+    const resetFilters = {
       status: "",
       category: "",
       location: "",
       dateFrom: "",
       dateTo: "",
-    });
+    };
+    setFilters(resetFilters);
+    setAppliedFilters(resetFilters);
   };
 
   // Get unique values for filter dropdowns
@@ -80,23 +126,58 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
     ...new Set(assets.map((a) => a.location).filter(Boolean)),
   ];
 
+  // Check if any filters are active
+  const hasActiveFilters =
+    appliedFilters.status ||
+    appliedFilters.category ||
+    appliedFilters.location ||
+    appliedFilters.dateFrom ||
+    appliedFilters.dateTo;
+
   return (
     <div className="flex flex-col w-full gap-6">
       {/* Dashboard Header */}
       <div className="flex flex-wrap justify-between items-center gap-4">
-        <h1 className="text-gray-900 text-3xl font-bold leading-tight">
-          Dashboard
-        </h1>
+        <div>
+          <h1 className="text-gray-900 dark:text-gray-100 text-3xl font-bold leading-tight">
+            Dashboard
+          </h1>
+          {hasActiveFilters && (
+            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+              Showing {totalAssets} of {assets.length} assets (filtered)
+            </p>
+          )}
+        </div>
         <div className="flex flex-wrap gap-3 justify-start">
           <button
             onClick={() => setShowFilterModal(true)}
-            className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal gap-2 hover:bg-blue-700 transition-colors"
+            className={`flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 ${
+              hasActiveFilters
+                ? "bg-blue-600 text-white"
+                : "bg-blue-600 text-white"
+            } text-sm font-bold leading-normal gap-2 hover:bg-blue-700 transition-colors relative`}
           >
+            {hasActiveFilters && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            )}
             <span className="material-symbols-outlined text-lg">
               filter_alt
             </span>
-            <span className="truncate">Filter Data</span>
+            <span className="truncate">
+              {hasActiveFilters ? "Filters Active" : "Filter Data"}
+            </span>
           </button>
+          {hasActiveFilters && (
+            <button
+              onClick={handleResetFilters}
+              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal gap-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">
+                filter_alt_off
+              </span>
+              <span className="truncate">Clear Filters</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -122,10 +203,10 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
           </p>
         </div>
 
-        {/* In Maintenance Card */}
+        {/* Under Maintenance Card */}
         <div className="flex flex-col gap-2 rounded-lg p-6 bg-white border border-gray-200 shadow-sm">
           <p className="text-base font-medium leading-normal text-gray-600">
-            In Maintenance
+            Under Maintenance
           </p>
           <p className="text-gray-900 tracking-tight text-3xl font-bold leading-tight">
             {inMaintenance}
@@ -175,7 +256,7 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
                 strokeWidth="4"
                 transform="rotate(-90 18 18)"
               />
-              {/* In Maintenance segment (yellow) */}
+              {/* Under Maintenance segment (yellow) */}
               <circle
                 className="stroke-current text-yellow-500"
                 cx="18"
@@ -224,7 +305,7 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <span>In Maintenance</span>
+                <span>Under Maintenance</span>
               </div>
               <span className="font-semibold">
                 {inMaintenance} ({maintenancePercent}%)
@@ -378,9 +459,12 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
                     >
                       <option value="">All Statuses</option>
                       <option value="In Use">In Use</option>
-                      <option value="In Maintenance">In Maintenance</option>
+                      <option value="Available">Available</option>
+                      <option value="Under Maintenance">
+                        Under Maintenance
+                      </option>
                       <option value="Retired">Retired</option>
-                      <option value="In Storage">In Storage</option>
+                      <option value="Lost">Lost</option>
                     </select>
                   </label>
                 </div>
