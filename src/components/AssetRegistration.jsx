@@ -83,6 +83,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     serialNumber: "",
     status: "In Use",
     maintenancePeriod: "",
+    assignedTo: "",
+    department: "",
   });
 
   // Success modal state: Controls post-registration success dialog
@@ -203,8 +205,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
         purchaseDate: formData.acquisitionDate,
         acquisitionDate: formData.acquisitionDate,
         cost: 0,
-        assignedTo: "",
-        department: "",
+        assignedTo: formData.assignedTo || "",
+        department: formData.department || "",
       };
 
       console.log("Created asset object:", newAsset);
@@ -242,6 +244,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       serialNumber: "",
       status: "In Use",
       maintenancePeriod: "",
+      assignedTo: "",
+      department: "",
     });
 
     // Notify parent component
@@ -702,6 +706,48 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   <option value="Annually">Annually</option>
                   <option value="Every 2 Years">Every 2 Years</option>
                   <option value="As Needed">As Needed</option>
+                </select>
+              </label>
+            </div>
+
+            {/* Assigned To */}
+            <div className="md:col-span-1">
+              <label className="flex flex-col w-full">
+                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                  Assigned To
+                </p>
+                <input
+                  type="text"
+                  name="assignedTo"
+                  value={formData.assignedTo}
+                  onChange={handleChange}
+                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  placeholder="Employee name or ID"
+                />
+              </label>
+            </div>
+
+            {/* Department */}
+            <div className="md:col-span-1">
+              <label className="flex flex-col w-full">
+                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                  Department
+                </p>
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                >
+                  <option value="">Select department</option>
+                  <option value="IT">IT</option>
+                  <option value="HR">HR</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Facilities">Facilities</option>
+                  <option value="Administration">Administration</option>
                 </select>
               </label>
             </div>
