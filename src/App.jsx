@@ -1,25 +1,35 @@
 /**
  * App.jsx
  *
- * This is the main application component that ties everything together.
- * It provides a two-column layout:
+ * Main application component that manages routing and page navigation.
+ * This is the central hub of the application that coordinates all major features.
  *
- * LEFT COLUMN:
- * - AssetForm: Add new equipment
- * - QRScanner: Scan QR codes using camera or file upload
- * - Displays full equipment details when a QR code is scanned
+ * Application Structure:
+ * - Header: Navigation bar with page links and search functionality
+ * - Main Content Area: Displays the active page component based on user navigation
  *
- * RIGHT COLUMN:
- * - EquipmentTable: Shows all equipment with their QR codes and print buttons
- * - Displays details of selected equipment
+ * Available Pages:
+ * 1. Dashboard - Overview statistics, charts, and recent activity
+ * 2. Assets - Asset management with table view, detail view, and registration form
+ * 3. Tags - Tag management for organizing assets (Location, Department, Type, Status)
+ * 4. Users - User management with role-based access control
+ * 5. Reports - Analytics dashboard with charts and data export capabilities
+ * 6. Settings - Application settings, API keys, and system configuration
  *
- * How data flows:
- * 1. User fills out AssetForm → equipment saved to EquipmentContext
- * 2. EquipmentTable reads from EquipmentContext and displays all equipment
- * 3. Each equipment row shows a QR code containing its unique ID
- * 4. User can scan a QR code → full equipment details are displayed (name, model, serial, location, notes, maintenance period)
- * 5. User clicks "View" on a table row → equipment ID is shown
- * 6. User clicks "Print" on a table row → print dialog opens with QR label
+ * State Management:
+ * - Uses EquipmentContext for global asset/equipment data
+ * - Local state for page navigation and view modes
+ * - Asset detail view state for showing individual asset information
+ *
+ * Navigation Flow:
+ * - User clicks navigation link in Header → updates currentPage state
+ * - Component renders corresponding page based on currentPage value
+ * - Assets page has sub-views: management (table), details (single asset), add (registration form)
+ *
+ * Props Flow:
+ * - Context provides: items (assets), activities (recent activity)
+ * - Callback functions passed to child components for state updates
+ * - View transitions handled through local state (assetsView, viewingAssetId)
  */
 
 import "./App.css";
@@ -30,41 +40,116 @@ import {
 } from "./context/EquipmentContext";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
-import AssetForm from "./components/AssetForm";
-import EquipmentTable from "./components/EquipmentTable";
-import QRScanner from "./components/QRScanner";
+import AssetsManagement from "./components/AssetsManagement";
+import AssetDetails from "./components/AssetDetails";
+import AssetRegistration from "./components/AssetRegistration";
+import EditAsset from "./components/EditAsset";
+import TagManagement from "./components/TagManagement";
+import UserManagement from "./components/UserManagement";
+import Reports from "./components/Reports";
+import Settings from "./components/Settings";
 
 /**
  * AppContent component
- * Separate component to access EquipmentContext (must be inside EquipmentProvider)
+ *
+ * Inner application component that has access to EquipmentContext.
+ * This component must be wrapped by EquipmentProvider to access global state.
+ *
+ * Responsibilities:
+ * - Manages page navigation state
+ * - Handles view mode switching for Assets page (table/detail/add views)
+ * - Provides navigation and search callbacks to Header
+ * - Renders appropriate page component based on current navigation state
+ *
+ * State Variables:
+ * @state {string} currentPage - Current active page ("Dashboard", "Assets", "Tags", "Users", "Reports", "Settings")
+ * @state {string} assetsView - Assets page view mode ("management", "details", "add", "edit")
+ * @state {string|null} viewingAssetId - ID of asset being viewed in detail view, null when not viewing
+ * @state {string|null} editingAssetId - ID of asset being edited, null when not editing
+ *
+ * Context Usage:
+ * @context {Array} items - Array of all equipment/asset objects from EquipmentContext
+ * @context {Array} activities - Array of recent activity log entries from EquipmentContext
  */
 function AppContent() {
   // Access equipment data from context
-  const { items, activities, getById } = useContext(EquipmentContext);
+  const { items, activities, deleteEquipment } = useContext(EquipmentContext);
 
-  // State: Current page being displayed (Dashboard or Assets)
-  const [currentPage, setCurrentPage] = useState("Dashboard");
+  // State: Current page being displayed - persist to localStorage
+  const [currentPage, setCurrentPage] = useState(() => {
+    return localStorage.getItem("currentPage") || "Dashboard";
+  });
 
-  // State: Stores the ID of the currently selected equipment (from table "View" button)
-  const [selected, setSelected] = useState(null);
+  // State: View mode for Assets page - persist to localStorage
+  const [assetsView, setAssetsView] = useState(() => {
+    return localStorage.getItem("assetsView") || "management";
+  });
 
-  // State: Stores the data decoded from a scanned QR code
-  const [scanned, setScanned] = useState(null);
+  // State: Asset ID for detail view - persist to localStorage
+  const [viewingAssetId, setViewingAssetId] = useState(() => {
+    return localStorage.getItem("viewingAssetId") || null;
+  });
 
-  // Get the full equipment object for the scanned QR code
-  const scannedEquipment = scanned ? getById(scanned) : null;
+  // State: Asset ID for edit view - persist to localStorage
+  const [editingAssetId, setEditingAssetId] = useState(() => {
+    return localStorage.getItem("editingAssetId") || null;
+  });
+
+  // Persist current page to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem("currentPage", currentPage);
+  }, [currentPage]);
+
+  // Persist assets view to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem("assetsView", assetsView);
+  }, [assetsView]);
+
+  // Persist viewing asset ID to localStorage whenever it changes
+  React.useEffect(() => {
+    if (viewingAssetId) {
+      localStorage.setItem("viewingAssetId", viewingAssetId);
+    } else {
+      localStorage.removeItem("viewingAssetId");
+    }
+  }, [viewingAssetId]);
+
+  // Persist editing asset ID to localStorage whenever it changes
+  React.useEffect(() => {
+    if (editingAssetId) {
+      localStorage.setItem("editingAssetId", editingAssetId);
+    } else {
+      localStorage.removeItem("editingAssetId");
+    }
+  }, [editingAssetId]);
 
   /**
    * Handle navigation between pages
-   * @param {string} page - Page name to navigate to
+   *
+   * Updates the current page state when user clicks navigation links in header.
+   * This triggers a re-render showing the selected page component.
+   * Also persists the navigation to localStorage for page refresh persistence.
+   *
+   * @param {string} page - Page identifier ("Dashboard", "Assets", "Tags", "Users", "Reports", "Settings")
    */
   const handleNavigate = (page) => {
     setCurrentPage(page);
+    // Reset assets view when navigating away from Assets page
+    if (page !== "Assets") {
+      setAssetsView("management");
+      setViewingAssetId(null);
+      setEditingAssetId(null);
+    }
   };
 
   /**
    * Handle search functionality
-   * @param {string} query - Search query string
+   *
+   * Called when user types in the search box in the header.
+   * Currently logs search queries - can be extended for global search functionality.
+   *
+   * @param {string} query - User's search query string
+   * @todo Implement global search across assets, tags, users, etc.
    */
   const handleSearch = (query) => {
     console.log("Searching for:", query);
@@ -88,206 +173,90 @@ function AppContent() {
             <Dashboard assets={items} recentActivity={activities} />
           )}
 
-          {/* Assets Page */}
-          {currentPage === "Assets" && (
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">
-                Asset Management
-              </h1>
-
-              {/* Two-column grid layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* LEFT COLUMN: Input and scanning */}
-                <section className="space-y-6">
-                  {/* Section 1: Add new equipment */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                      Add Asset
-                    </h2>
-                    <AssetForm />
-                  </div>
-
-                  {/* Section 2: Scan QR codes */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                      Scan QR Code
-                    </h2>
-                    <QRScanner
-                      onDetected={(data) => setScanned(data)} // Save scanned data to state
-                    />
-
-                    {/* Show the scanned QR data if available */}
-                    {scanned && (
-                      <div className="mt-4">
-                        {scannedEquipment ? (
-                          // Equipment found - show full details
-                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center justify-between mb-3">
-                              <strong className="text-green-900 font-semibold text-lg">
-                                ✓ Equipment Found
-                              </strong>
-                              <button
-                                onClick={() => setScanned(null)}
-                                className="text-green-700 hover:text-green-900 text-sm underline"
-                              >
-                                Clear
-                              </button>
-                            </div>
-
-                            <div className="space-y-2">
-                              <div className="border-b border-green-200 pb-2">
-                                <p className="text-xs text-green-600 font-medium uppercase">
-                                  Name
-                                </p>
-                                <p className="text-green-900 font-semibold text-lg">
-                                  {scannedEquipment.name}
-                                </p>
-                              </div>
-
-                              {scannedEquipment.model && (
-                                <div className="border-b border-green-200 pb-2">
-                                  <p className="text-xs text-green-600 font-medium uppercase">
-                                    Model
-                                  </p>
-                                  <p className="text-green-900">
-                                    {scannedEquipment.model}
-                                  </p>
-                                </div>
-                              )}
-
-                              {scannedEquipment.serial && (
-                                <div className="border-b border-green-200 pb-2">
-                                  <p className="text-xs text-green-600 font-medium uppercase">
-                                    Serial Number
-                                  </p>
-                                  <p className="text-green-900">
-                                    {scannedEquipment.serial}
-                                  </p>
-                                </div>
-                              )}
-
-                              {scannedEquipment.location && (
-                                <div className="border-b border-green-200 pb-2">
-                                  <p className="text-xs text-green-600 font-medium uppercase">
-                                    Location
-                                  </p>
-                                  <p className="text-green-900">
-                                    {scannedEquipment.location}
-                                  </p>
-                                </div>
-                              )}
-
-                              {scannedEquipment.notes && (
-                                <div className="border-b border-green-200 pb-2">
-                                  <p className="text-xs text-green-600 font-medium uppercase">
-                                    Notes
-                                  </p>
-                                  <p className="text-green-900">
-                                    {scannedEquipment.notes}
-                                  </p>
-                                </div>
-                              )}
-
-                              {scannedEquipment.maintenancePeriod && (
-                                <div className="border-b border-green-200 pb-2">
-                                  <p className="text-xs text-green-600 font-medium uppercase">
-                                    Maintenance Period
-                                  </p>
-                                  <p className="text-green-900">
-                                    {scannedEquipment.maintenancePeriod}
-                                  </p>
-                                </div>
-                              )}
-
-                              <div className="pt-2">
-                                <p className="text-xs text-green-600 font-medium uppercase">
-                                  Equipment ID
-                                </p>
-                                <p className="text-green-800 font-mono text-xs break-all">
-                                  {scannedEquipment.id}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          // Equipment not found - show error
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <strong className="text-yellow-900 font-semibold">
-                                ⚠️ Equipment Not Found
-                              </strong>
-                              <button
-                                onClick={() => setScanned(null)}
-                                className="text-yellow-700 hover:text-yellow-900 text-sm underline"
-                              >
-                                Clear
-                              </button>
-                            </div>
-                            <p className="text-sm text-yellow-800 mb-2">
-                              The scanned QR code does not match any equipment
-                              in the system.
-                            </p>
-                            <p className="text-xs text-yellow-700 font-mono break-all bg-yellow-100 p-2 rounded">
-                              Scanned ID: {scanned}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* RIGHT COLUMN: View equipment */}
-                <section className="space-y-6">
-                  {/* Section 3: List all equipment in a table */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                      Equipment List
-                    </h2>
-                    <EquipmentTable
-                      onSelect={(id) => setSelected(id)} // Save selected equipment ID to state
-                    />
-                  </div>
-
-                  {/* Show details of the selected equipment */}
-                  {selected && (
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        Selected Equipment
-                      </h3>
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded text-blue-900 font-mono text-sm break-all">
-                        {selected}
-                      </div>
-                    </div>
-                  )}
-                </section>
-              </div>
-            </div>
+          {/* Assets Page with Management View */}
+          {currentPage === "Assets" && assetsView === "management" && (
+            <AssetsManagement
+              assets={items}
+              onView={(asset) => {
+                setViewingAssetId(asset.id);
+                setAssetsView("details");
+              }}
+              onEdit={(asset) => {
+                setEditingAssetId(asset.id);
+                setAssetsView("edit");
+              }}
+              onDelete={async (asset) => {
+                if (
+                  window.confirm(
+                    `Are you sure you want to delete "${asset.name}"?`
+                  )
+                ) {
+                  try {
+                    await deleteEquipment(asset.id);
+                    console.log("Asset deleted successfully");
+                  } catch (error) {
+                    alert(`Failed to delete asset: ${error.message}`);
+                  }
+                }
+              }}
+              onAddNew={() => setAssetsView("add")}
+            />
           )}
+
+          {/* Assets Page with Detail View */}
+          {currentPage === "Assets" && assetsView === "details" && (
+            <AssetDetails
+              assetId={viewingAssetId}
+              onClose={() => {
+                setAssetsView("management");
+                setViewingAssetId(null);
+              }}
+              onEdit={(asset) => {
+                setEditingAssetId(asset.id);
+                setAssetsView("edit");
+              }}
+            />
+          )}
+
+          {/* Assets Page with Registration Form */}
+          {currentPage === "Assets" && assetsView === "add" && (
+            <AssetRegistration
+              onSuccess={() => {
+                setAssetsView("management");
+              }}
+              onCancel={() => {
+                setAssetsView("management");
+              }}
+            />
+          )}
+
+          {/* Assets Page with Edit Form */}
+          {currentPage === "Assets" && assetsView === "edit" && (
+            <EditAsset
+              assetId={editingAssetId}
+              onSave={(updatedAsset) => {
+                console.log("Asset updated successfully:", updatedAsset);
+                setAssetsView("management");
+                setEditingAssetId(null);
+              }}
+              onCancel={() => {
+                setAssetsView("management");
+                setEditingAssetId(null);
+              }}
+            />
+          )}
+
+          {/* Tags Page */}
+          {currentPage === "Tags" && <TagManagement />}
+
+          {/* Users Page */}
+          {currentPage === "Users" && <UserManagement />}
 
           {/* Reports Page */}
-          {currentPage === "Reports" && (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Reports View
-              </h2>
-              <p className="text-gray-600">
-                Generate and view asset reports here
-              </p>
-            </div>
-          )}
+          {currentPage === "Reports" && <Reports />}
 
           {/* Settings Page */}
-          {currentPage === "Settings" && (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Settings View
-              </h2>
-              <p className="text-gray-600">
-                Application settings and preferences
-              </p>
-            </div>
-          )}
+          {currentPage === "Settings" && <Settings />}
         </div>
       </main>
     </div>
@@ -295,8 +264,19 @@ function AppContent() {
 }
 
 /**
- * App component
- * Wraps AppContent with EquipmentProvider so context is available
+ * App component (Root Component)
+ *
+ * Entry point of the application that provides global context.
+ * Wraps AppContent with EquipmentProvider to make equipment/asset data
+ * available to all child components throughout the application.
+ *
+ * Context Provided:
+ * - Equipment/Asset data (items array)
+ * - Recent activity logs
+ * - Functions to add, update, delete equipment
+ * - Helper functions like getById for retrieving specific items
+ *
+ * @returns {JSX.Element} Application with context provider wrapper
  */
 function App() {
   return (

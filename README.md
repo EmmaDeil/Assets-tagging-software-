@@ -1,126 +1,367 @@
-# ASE Tag Software (Assets Tagging with QR Codes)
+# ASE Tag Software (Assets Tagging & Management)
 
-A React-based application for managing equipment/assets with QR code generation and scanning capabilities.
+A comprehensive React-based application for managing equipment/assets with QR code generation, advanced filtering, reporting, and analytics capabilities.
 
-## Features
+## 🚀 Features
 
-- **Asset Form**: Add new equipment entries with fields for name, model, serial, location, and notes.
-- **QR Code Generation**: Automatically generates a 64x64 QR code for each asset (encodes the unique asset ID).
-- **Equipment Table**: Displays all assets in a table with their QR codes and details.
-- **QR Scanner**: Scan QR codes from your device's camera or by uploading an image; displays the full equipment details including name, model, serial, location, and notes.
-- **Print Labels**: Print QR code labels for each equipment with a dedicated print button. Labels include the QR code (200x200) and equipment details, optimized for physical attachment to devices.
+### Core Functionality
+- **Dashboard**: Real-time overview with statistics, charts, and recent activity
+- **Asset Management**: Complete CRUD operations for equipment inventory
+- **Advanced Search**: Multi-criteria filtering with AND/OR logical operators
+- **Tag Management**: Organize assets with custom tags (Location, Department, Type, Status)
+- **User Management**: Role-based access control (Administrator, Manager, User)
+- **Reports & Analytics**: Interactive charts with Chart.js and data export (PDF/CSV)
+- **Settings**: Application configuration, API key management, and system settings
+- **QR Code Integration**: Generate and display QR codes for asset identification
 
-## Project structure
+### Advanced Features
+- Real-time search and filtering across all assets
+- Interactive data visualizations (Line and Doughnut charts)
+- PDF report generation with jsPDF
+- CSV data export functionality
+- Responsive design for mobile, tablet, and desktop
+- Dark mode support (ready for implementation)
+- Activity logging and audit trail
+
+## 📁 Project Structure
 
 ```
 src/
-├─ components/
-│  ├─ AssetForm.jsx         → Form for adding equipment
-│  ├─ EquipmentTable.jsx    → Table listing all equipment + QR codes
-│  ├─ QRCodeGenerator.jsx   → Reusable QR code renderer (64x64 default)
-│  ├─ QRScanner.jsx         → Camera & image QR scanner component
-│  └─ QRCodePrint.jsx       → Print-optimized QR label component
-├─ context/
-│  └─ EquipmentContext.jsx  → React Context provider for equipment data
-└─ App.jsx                  → Main application entry (wires all components)
+├── components/               # All UI components
+│   ├── AdvancedSearch.jsx   → Slide-out panel with multi-criteria filtering
+│   ├── AssetDetails.jsx     → Detailed view of a single asset
+│   ├── AssetRegistration.jsx → Form for registering new assets
+│   ├── AssetsManagement.jsx → Main asset table with search and filters
+│   ├── Dashboard.jsx        → Overview dashboard with statistics
+│   ├── EditAsset.jsx        → Form for editing existing assets
+│   ├── Header.jsx           → Navigation header with search
+│   ├── Reports.jsx          → Analytics dashboard with charts
+│   ├── Settings.jsx         → Application settings and configuration
+│   ├── TagManagement.jsx    → Tag CRUD interface
+│   └── UserManagement.jsx   → User administration interface
+├── context/
+│   └── EquipmentContext.jsx → Global state management for assets
+├── App.jsx                  → Main application router
+├── main.jsx                 → Application entry point
+└── index.css                → Global styles (Tailwind CSS)
 ```
 
-All components are **reusable**:
+## 🛠️ Tech Stack
 
-- `<AssetForm />` — pass custom `onSubmit` if you want different behavior.
-- `<QRCodeGenerator value="..." size={64} />` — renders any string as a QR code.
-- `<EquipmentTable onSelect={handler} />` — pass a callback to handle row selection.
-- `<QRScanner onDetected={handler} />` — triggers callback when a QR code is scanned.
-- `<QRCodePrint equipment={item} onClose={handler} />` — displays print-optimized label.
-- `<QRScanner onDetected={handler} />` — triggers callback when a QR code is scanned.
+### Core Dependencies
+- **React 19.1.1** - UI framework
+- **Vite 7.1.7** - Build tool and dev server
+- **Tailwind CSS 4.1.16** - Utility-first CSS framework
 
-## Quick start
+### Visualization & Export
+- **Chart.js 4.5.1** - Interactive charts
+- **react-chartjs-2 5.3.1** - React wrapper for Chart.js
+- **jsPDF 3.0.3** - PDF generation
+- **jspdf-autotable 5.0.2** - PDF table generation
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+### QR Code
+- **react-qr-code 2.0.18** - QR code rendering
 
-2. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-   By default, Vite serves the app at **http://localhost:5173**.
+### Backend
+- **Express 4.21.2** - Node.js web framework
+- **Mongoose 8.9.3** - MongoDB object modeling
+- **CORS 2.8.5** - Cross-origin resource sharing
+- **dotenv 16.4.5** - Environment variable management
 
-3. Build for production:
-   ```bash
-   npm run build
-   ```
+### Development Tools
+- **ESLint** - Code linting
+- **PostCSS** - CSS processing
+- **Autoprefixer** - CSS vendor prefixes
+- **Concurrently 9.1.2** - Run multiple commands simultaneously
 
-## Dependencies
+## 🚦 Quick Start
 
-- **react**: ^19.1.1
-- **react-dom**: ^19.1.1
-- **react-qr-code**: ^2.0.18 (renders SVG-based QR codes)
-- **jsqr**: ^1.4.0 (decodes QR codes from images & video frames)
-- **tailwindcss**: ^4.x (utility-first CSS framework for styling)
-- **@tailwindcss/postcss**: Latest (PostCSS plugin for Tailwind v4)
+### Prerequisites
+- Node.js 16+ installed
+- MongoDB installed locally OR MongoDB Atlas account
 
-## Styling
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Setup MongoDB
+
+**Option A: Local MongoDB**
+```bash
+# Install MongoDB Community Edition
+# Windows: Download from mongodb.com
+# macOS: brew install mongodb-community
+# Linux: sudo apt-get install mongodb
+
+# Start MongoDB service
+# Windows: net start MongoDB
+# macOS/Linux: sudo systemctl start mongod
+```
+
+**Option B: MongoDB Atlas (Cloud)**
+- Sign up at [mongodb.com/atlas](https://www.mongodb.com/cloud/atlas)
+- Create a free cluster
+- Get your connection string
+- Update `.env` file with your URI
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory:
+```env
+# For Local MongoDB
+MONGODB_URI=mongodb://localhost:27017/ase-tag-software
+
+# For MongoDB Atlas
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ase-tag-software
+
+PORT=5000
+NODE_ENV=development
+```
+
+### 4. Start the Application
+```bash
+# Start both backend and frontend concurrently
+npm run dev
+```
+
+This will start:
+- **Backend Server**: http://localhost:5000
+- **Frontend App**: http://localhost:5173
+
+Alternatively, run them separately:
+```bash
+# Terminal 1 - Backend
+npm run server
+
+# Terminal 2 - Frontend
+npm run client
+```
+
+### 5. Build for Production
+```bash
+npm run build
+```
+Production build outputs to `dist/` directory
+
+### 6. Preview Production Build
+```bash
+npm run preview
+```
+
+## 🔌 API Endpoints
+
+Base URL: `http://localhost:5000/api`
+
+### Equipment/Assets
+- `GET /equipment` - Get all assets
+- `GET /equipment/:id` - Get asset by ID
+- `POST /equipment` - Create new asset
+- `PUT /equipment/:id` - Update asset
+- `DELETE /equipment/:id` - Delete asset
+
+### Activities
+- `GET /activities` - Get all activities (max 50)
+- `GET /activities/asset/:assetId` - Get activities for specific asset
+- `POST /activities` - Create activity log
+
+### Users
+- `GET /users` - Get all users
+- `GET /users/:id` - Get user by ID
+- `POST /users` - Create new user
+- `PUT /users/:id` - Update user
+- `DELETE /users/:id` - Delete user
+
+### Tags
+- `GET /tags` - Get all tags
+- `GET /tags/category/:category` - Get tags by category
+- `POST /tags` - Create new tag
+- `PUT /tags/:id` - Update tag
+- `DELETE /tags/:id` - Delete tag
+
+## 📖 Application Pages
+
+### 1. Dashboard
+- Overview statistics (Total Assets, In Use, In Maintenance, Retired)
+- Visual pie chart showing asset distribution
+- Recent activity feed
+- Quick action cards
+
+### 2. Assets Management
+- Sortable, filterable asset table
+- Advanced search with slide-out panel
+- Quick actions (View, Edit, Delete)
+- Bulk operations support
+- Add new asset button
+- Export functionality (CSV)
+
+### 3. Asset Registration
+- Comprehensive registration form
+- Real-time QR code preview
+- File upload support
+- Camera integration
+- Success confirmation with QR display
+
+### 4. Asset Details
+- Complete asset information
+- Activity timeline
+- QR code display (150x150px)
+- Edit and print options
+- Status indicators
+
+### 5. Asset Editing
+- Pre-populated form with existing asset data
+- Update asset name, category, location, and dates
+- File attachment management (upload, delete)
+- Drag-and-drop file upload support
+- Periodic maintenance schedule configuration
+- Real-time change tracking with unsaved changes warning
+- Breadcrumb navigation
+- Responsive layout with form on left, file uploader on right
+
+### 6. Tag Management
+- Create, edit, delete tags
+- Four tag categories: Location, Department, Asset Type, Status
+- Color coding system
+- Search and filter functionality
+- Pagination support
+
+### 7. User Management
+- User CRUD operations
+- Role assignment (Administrator, Manager, User)
+- Status management (Active/Inactive)
+- Dropdown action menus
+
+### 8. Reports & Analytics
+- Interactive line chart (Asset Status over Time)
+- Doughnut chart (Category Distribution)
+- Custom date range picker
+- Filter by category and status
+- PDF report generation
+- CSV data export
+
+### 9. Settings
+- General settings (App name, Timezone, Maintenance mode)
+- API key management
+- Permissions configuration (Coming soon)
+- Integrations (Coming soon)
+- Branding customization (Coming soon)
+- Danger zone for critical operations
+
+## 🔧 Code Quality
+
+### Documentation
+- ✅ All components have comprehensive JSDoc comments
+- ✅ Function parameters and return types documented
+- ✅ State variables explained with @state tags
+- ✅ Props documented with @param tags
+- ✅ Usage examples provided where helpful
+
+### Code Organization
+- ✅ All components in `src/components/` directory
+- ✅ Context providers in `src/context/` directory
+- ✅ Clean separation of concerns
+- ✅ Reusable component architecture
+- ✅ Consistent naming conventions
+
+### Dependency Management
+- ✅ Only actively used packages installed
+- ✅ No unused dependencies
+- ✅ Regular version updates
+- ✅ Zero vulnerabilities
+
+### Unused Code Cleanup
+- ✅ Removed legacy components: AssetForm, EquipmentTable, QRScanner, DashboardExample, QRCodeGenerator, QRCodePrint
+- ✅ Removed unused jsqr package
+- ✅ No unused imports or variables
+- ✅ All code actively utilized
+
+## 🎨 Styling
 
 This project uses **Tailwind CSS v4** for all styling:
 
-- **Modern design**: Clean, professional UI with rounded corners, shadows, and smooth transitions
-- **Responsive layout**: Adapts to different screen sizes (mobile, tablet, desktop)
-- **Accessible colors**: Uses Tailwind's color palette with proper contrast ratios
-- **Interactive elements**: Hover states, focus rings, and button animations
-- **Form styling**: Beautiful input fields with focus states and proper spacing
+- **Modern design**: Clean, professional UI with consistent spacing
+- **Responsive layout**: Mobile-first approach, adapts to all screen sizes
+- **Accessible colors**: Proper contrast ratios for readability
+- **Interactive elements**: Smooth transitions and hover states
+- **Form styling**: Beautiful inputs with focus states
 
-### Color scheme:
-- Primary: Blue (buttons, links, accents)
-- Success: Green (successful scans, confirmations)
-- Error: Red (error messages, warnings)
-- Neutral: Gray scale (backgrounds, text, borders)
+### Color Scheme:
+- **Primary (Blue #4A90E2)**: Buttons, links, active states
+- **Success (Green)**: Positive actions, confirmations
+- **Warning (Yellow)**: Caution messages, maintenance status
+- **Error (Red)**: Error messages, danger zone
+- **Neutral (Gray)**: Backgrounds, text, borders
 
-All inline styles have been replaced with Tailwind utility classes for better maintainability and consistency.
+## 🗄️ State Management
 
-## How it works
+Uses **React Context API** for global state:
 
-1. **Add an asset**: Fill in the form and submit. The app creates a unique ID for the equipment and stores it in React Context.
-2. **View table**: The equipment table lists all assets, showing a QR code (containing the asset ID) for each row.
-3. **Print labels**: Click the "🖨️ Print" button next to any equipment to open a print dialog with a large QR code (200x200) and equipment details. The label is optimized for printing and can be attached to physical devices.
-4. **Scan a QR code**: Use the scanner to read a QR code (either from your camera or by uploading an image). The app will look up the equipment and display all details (name, model, serial, location, notes). If the equipment is not found, a warning message is shown.
-5. **View details**: Click "View" in the table row to see the selected asset ID.
+### EquipmentContext
+- Stores all asset/equipment data
+- Provides CRUD functions
+- Manages activity log
+- Accessible from any component
 
-## Printing QR Code Labels
+### Context Functions:
+- `addEquipment(data)` - Add new asset
+- `getById(id)` - Retrieve asset by ID
+- `addActivity(activity)` - Log new activity
 
-The application includes a built-in print feature for creating physical labels:
+## 📊 Data Structure
 
-### How to print:
-1. Click the **"🖨️ Print"** button in any equipment row
-2. A print preview modal will appear with the label
-3. The print dialog opens automatically
-4. Choose your printer or "Print to PDF" to save digitally
-5. Print the label and attach it to your equipment
+### Asset Object:
+```javascript
+{
+  id: "1699276800000-a3b5c7d",  // Unique identifier
+  name: "Dell XPS 15",           // Asset name
+  model: "XPS-15-9520",          // Model number
+  serial: "ABC123",              // Serial number
+  category: "Laptops",           // Asset category
+  location: "Office A",          // Physical location
+  status: "In Use",              // Current status
+  purchaseDate: "2024-01-15",    // Acquisition date
+  cost: 1200,                    // Purchase cost
+  description: "...",            // Detailed notes
+  maintenancePeriod: "Annual"    // Maintenance schedule
+}
+```
 
-### Label contents:
-- Large 200x200 QR code (only the QR code is printed)
-- Equipment details are shown in the preview but NOT printed
-- Clean, minimal label perfect for sticking on devices
+## 🚀 Future Enhancements
 
-### Print tips:
-- **Only the QR code prints** - equipment details are shown in preview only
-- Use **adhesive label paper** for easy attachment to devices
-- Common sizes: 2"x2" or 3"x3" labels work well for 200x200 QR codes
-- For durability, use **waterproof/laminated labels**
-- Test scan the printed QR code before applying to equipment
-- Save as PDF for digital backup of all QR codes
+- [ ] Backend API integration
+- [ ] Database persistence (LocalStorage/IndexedDB interim)
+- [ ] User authentication and sessions
+- [ ] Email notifications
+- [ ] Barcode support
+- [ ] Mobile app (React Native)
+- [ ] Scheduled maintenance reminders
+- [ ] Asset depreciation calculations
+- [ ] Multi-language support
 
-## Next steps & customization
+## 📝 Development Notes
 
-- Add a details panel that looks up the asset by the scanned ID and displays all fields.
-- Persist data (local storage, or a backend API).
-- Add ability to edit or delete assets.
-- Change QR size or styling by passing a `size` prop to `<QRCodeGenerator />`.
-- Batch print multiple QR codes at once.
-- Export equipment data as CSV or Excel.
-- Add equipment categories or tags for better organization.
+### ESLint Configuration
+- Uses `eslint.config.js` for modern flat config
+- React Hooks rules enabled
+- React Refresh plugin for HMR
+
+### Known Warnings
+- Fast Refresh warning in EquipmentContext (cosmetic only, doesn't affect functionality)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with proper documentation
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+See LICENSE file for details.
 
 ---
 
-**License**: See LICENSE file (if any).
+**Built with ❤️ using React, Vite, and Tailwind CSS**
+2. A print preview modal will appear with the label

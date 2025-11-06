@@ -1,43 +1,67 @@
 /**
  * Header.jsx
  *
- * Application header component with navigation, search, and user profile.
+ * Application header component with navigation and user profile.
  * This component provides the main navigation structure for the application.
  *
  * Features:
  * - Application logo and branding
- * - Main navigation menu (Dashboard, Assets, Reports, Settings)
- * - Search functionality
+ * - Main navigation menu (Assets, Tags, Users, Reports, Settings)
  * - Notification icon
- * - User profile picture
+ * - User profile picture (fetched from backend)
+ * - User dropdown menu with profile settings and logout
  * - Responsive design that collapses on mobile
  * - Sticky positioning
+ * - Dark mode support
  *
  * Props:
  * @param {string} activePage - Currently active page for highlighting navigation
  * @param {Function} onNavigate - Callback function when navigation item is clicked
- * @param {Function} onSearch - Callback function for search input
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function Header({
-  activePage = "Dashboard",
-  onNavigate,
-  onSearch,
-}) {
-  const [searchValue, setSearchValue] = useState("");
+export default function Header({ activePage = "Dashboard", onNavigate }) {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   /**
-   * Handle search input changes
-   * @param {Event} e - Input change event
+   * Fetch current user data from backend
    */
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    if (onSearch) {
-      onSearch(e.target.value);
-    }
-  };
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        // For now, fetch the first user as the logged-in user
+        // In a real app, this would use authentication to get the current user
+        const response = await fetch("http://localhost:5000/api/users");
+        if (response.ok) {
+          const users = await response.json();
+          if (users.length > 0) {
+            // Get the first user or implement proper auth logic
+            setCurrentUser(users[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  /**
+   * Close user menu when clicking outside
+   */
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest(".user-menu-container")) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUserMenu]);
 
   /**
    * Handle navigation click
@@ -51,39 +75,32 @@ export default function Header({
 
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-gray-200 px-6 sm:px-10 py-4 bg-white sticky top-0 z-10 shadow-sm">
-      {/* Left side: Logo and Navigation */}
-      <div className="flex items-center gap-8">
-        {/* Logo and Brand */}
-        <div className="flex items-center gap-3 text-gray-900">
-          <div className="w-6 h-6 text-blue-600">
-            <svg
-              fill="none"
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z"
-                fill="currentColor"
-              ></path>
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold leading-tight tracking-tight">
-            AssetManager
-          </h2>
+      {/* Left side: Logo */}
+      <div className="flex items-center gap-3 text-gray-900">
+        <div className="w-6 h-6 text-blue-600">
+          <svg
+            fill="none"
+            viewBox="0 0 48 48"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 4H17.3334V17.3334H30.6666V30.6666H44V44H4V4Z"
+              fill="currentColor"
+            ></path>
+          </svg>
         </div>
+        <h2
+          className="text-xl font-bold leading-tight tracking-tight cursor-pointer"
+          onClick={() => handleNavClick("Dashboard")}
+        >
+          AssetManager
+        </h2>
+      </div>
 
+      {/* Right side: Navigation, Search, Notifications, Profile */}
+      <div className="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
         {/* Navigation Menu - Hidden on mobile */}
         <nav className="hidden md:flex items-center gap-8">
-          <button
-            onClick={() => handleNavClick("Dashboard")}
-            className={`${
-              activePage === "Dashboard"
-                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
-                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
-            } transition-colors`}
-          >
-            Dashboard
-          </button>
           <button
             onClick={() => handleNavClick("Assets")}
             className={`${
@@ -93,6 +110,26 @@ export default function Header({
             } transition-colors`}
           >
             Assets
+          </button>
+          <button
+            onClick={() => handleNavClick("Tags")}
+            className={`${
+              activePage === "Tags"
+                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
+                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
+            } transition-colors`}
+          >
+            Tags
+          </button>
+          <button
+            onClick={() => handleNavClick("Users")}
+            className={`${
+              activePage === "Users"
+                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
+                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
+            } transition-colors`}
+          >
+            Users
           </button>
           <button
             onClick={() => handleNavClick("Reports")}
@@ -115,38 +152,6 @@ export default function Header({
             Settings
           </button>
         </nav>
-      </div>
-
-      {/* Right side: Search, Notifications, Profile */}
-      <div className="flex flex-1 justify-end gap-4 sm:gap-6 items-center">
-        {/* Search Bar - Hidden on small screens */}
-        <label className="hidden sm:flex flex-col min-w-40 h-10 max-w-64">
-          <div className="flex w-full flex-1 items-stretch rounded-lg h-full bg-gray-100">
-            <div className="text-gray-500 flex items-center justify-center pl-3">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-            <input
-              className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 focus:outline-0 focus:ring-0 border-none bg-transparent h-full placeholder:text-gray-500 px-2 text-sm font-normal leading-normal"
-              placeholder="Search assets..."
-              value={searchValue}
-              onChange={handleSearchChange}
-            />
-          </div>
-        </label>
-
         {/* Notifications Button */}
         <button className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors">
           <svg
@@ -166,14 +171,76 @@ export default function Header({
         </button>
 
         {/* User Profile Picture */}
-        <div
-          className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-          style={{
-            backgroundImage:
-              'url("https://lh3.googleusercontent.com/aida-public/AB6AXuARSx7j4wX5-TM_9FGjltDJfM8W15YRnR0WHZiOtVj5J_g5fFoJZHzYcfxAo53KvgkaV-GxnmHS6ZWJPaNZt9KCJgL5lPw5y2gzNnL5rTaiIB-KB4in4Nt_-h5hipKKznpI2oWwnV_czybkBakPfZZBTnB2uuXlR8nBUiQtwBbTKX5-RBe8Y_7Ic1ZT3hysV5QfFV-5vvsX9OieLbs6Yl7IYeaSalKyxrYgwJ4zrGHjvL5fsgjxycc6eBlggKDOMXreApNm2MaOuSE")',
-          }}
-          title="User profile"
-        ></div>
+        <div className="relative user-menu-container">
+          <div
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex items-center justify-center text-white font-bold text-sm"
+            style={{
+              backgroundColor: currentUser?.profilePhoto
+                ? "transparent"
+                : "#3B82F6",
+              backgroundImage: currentUser?.profilePhoto
+                ? `url(${currentUser.profilePhoto})`
+                : "none",
+            }}
+            title={
+              currentUser
+                ? `${currentUser.name} - ${currentUser.email}`
+                : "User profile"
+            }
+          >
+            {!currentUser?.profilePhoto &&
+              (currentUser?.name?.[0]?.toUpperCase() || "U")}
+          </div>
+
+          {/* User Dropdown Menu */}
+          {showUserMenu && currentUser && (
+            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+              {/* User Info */}
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {currentUser.name}
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {currentUser.email}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                  {currentUser.role} •{" "}
+                  {currentUser.department || "No Department"}
+                </p>
+              </div>
+
+              {/* Menu Items */}
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    handleNavClick("Settings");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    settings
+                  </span>
+                  Profile Settings
+                </button>
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    // Add logout logic here
+                    console.log("Logout clicked");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    logout
+                  </span>
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

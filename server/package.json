@@ -1,0 +1,15 @@
+{
+  "name": "ase-tag-software-server",
+  "version": "1.0.0",
+  "description": "Backend server for ASE Tag Software",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node seed.js"
+  },
+  "keywords": ["asset", "management", "mongodb", "express"],
+  "author": "",
+  "license": "ISC"
+}

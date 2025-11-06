@@ -16,9 +16,19 @@
  * @param {Array} recentActivity - Array of recent activity objects with asset, action, user, and date
  */
 
-import React from "react";
+import React, { useState } from "react";
 
 export default function Dashboard({ assets = [], recentActivity = [] }) {
+  // Filter modal state
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    category: "",
+    location: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+
   // Calculate asset statistics
   const totalAssets = assets.length;
   const inUse = assets.filter((a) => a.status === "In Use").length;
@@ -35,6 +45,41 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
   const retiredPercent =
     totalAssets > 0 ? Math.round((retired / totalAssets) * 100) : 0;
 
+  // Handle filter changes
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Apply filters
+  const handleApplyFilters = () => {
+    // Filter logic would go here
+    console.log("Applying filters:", filters);
+    setShowFilterModal(false);
+  };
+
+  // Reset filters
+  const handleResetFilters = () => {
+    setFilters({
+      status: "",
+      category: "",
+      location: "",
+      dateFrom: "",
+      dateTo: "",
+    });
+  };
+
+  // Get unique values for filter dropdowns
+  const uniqueCategories = [
+    ...new Set(assets.map((a) => a.category).filter(Boolean)),
+  ];
+  const uniqueLocations = [
+    ...new Set(assets.map((a) => a.location).filter(Boolean)),
+  ];
+
   return (
     <div className="flex flex-col w-full gap-6">
       {/* Dashboard Header */}
@@ -43,12 +88,14 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
           Dashboard
         </h1>
         <div className="flex flex-wrap gap-3 justify-start">
-          <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal gap-2 hover:bg-blue-700 transition-colors">
-            <span className="text-xl">+</span>
-            <span className="truncate">Add New Asset</span>
-          </button>
-          <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white text-gray-900 border border-gray-300 text-sm font-bold leading-normal hover:bg-gray-50 transition-colors">
-            <span className="truncate">Generate Report</span>
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal gap-2 hover:bg-blue-700 transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">
+              filter_alt
+            </span>
+            <span className="truncate">Filter Data</span>
           </button>
         </div>
       </div>
@@ -284,6 +331,194 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
           </div>
         </div>
       </div>
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl">
+                    filter_alt
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Filter Assets
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Refine your asset view with custom filters
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Status Filter */}
+                <div>
+                  <label className="flex flex-col w-full">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                      Status
+                    </p>
+                    <select
+                      name="status"
+                      value={filters.status}
+                      onChange={handleFilterChange}
+                      className="form-select flex w-full rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 h-12 px-4 text-base transition-all"
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="In Use">In Use</option>
+                      <option value="In Maintenance">In Maintenance</option>
+                      <option value="Retired">Retired</option>
+                      <option value="In Storage">In Storage</option>
+                    </select>
+                  </label>
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <label className="flex flex-col w-full">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                      Category
+                    </p>
+                    <select
+                      name="category"
+                      value={filters.category}
+                      onChange={handleFilterChange}
+                      className="form-select flex w-full rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 h-12 px-4 text-base transition-all"
+                    >
+                      <option value="">All Categories</option>
+                      {uniqueCategories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                {/* Location Filter */}
+                <div>
+                  <label className="flex flex-col w-full">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                      Location
+                    </p>
+                    <select
+                      name="location"
+                      value={filters.location}
+                      onChange={handleFilterChange}
+                      className="form-select flex w-full rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 h-12 px-4 text-base transition-all"
+                    >
+                      <option value="">All Locations</option>
+                      {uniqueLocations.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                {/* Date Range */}
+                <div>
+                  <label className="flex flex-col w-full">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                      Date Range
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        name="dateFrom"
+                        value={filters.dateFrom}
+                        onChange={handleFilterChange}
+                        placeholder="From"
+                        className="form-input flex w-full rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 h-12 px-4 text-sm transition-all"
+                      />
+                      <input
+                        type="date"
+                        name="dateTo"
+                        value={filters.dateTo}
+                        onChange={handleFilterChange}
+                        placeholder="To"
+                        className="form-input flex w-full rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 h-12 px-4 text-sm transition-all"
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Active Filters Summary */}
+              {(filters.status ||
+                filters.category ||
+                filters.location ||
+                filters.dateFrom ||
+                filters.dateTo) && (
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Active Filters:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {filters.status && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        Status: {filters.status}
+                      </span>
+                    )}
+                    {filters.category && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        Category: {filters.category}
+                      </span>
+                    )}
+                    {filters.location && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        Location: {filters.location}
+                      </span>
+                    )}
+                    {(filters.dateFrom || filters.dateTo) && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+                        Date: {filters.dateFrom || "Start"} -{" "}
+                        {filters.dateTo || "End"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 pt-0 flex justify-end gap-3">
+              <button
+                onClick={handleResetFilters}
+                className="px-6 py-2.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setShowFilterModal(false)}
+                className="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApplyFilters}
+                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">check</span>
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
