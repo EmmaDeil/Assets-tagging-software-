@@ -99,13 +99,13 @@ router.post('/', async (req, res) => {
     const equipment = new Equipment(req.body);
     await equipment.save();
 
-    // Log activity
+    // Log activity - use admin user
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Added',
       actionType: 'Added',
-      user: 'Admin',
+      user: 'David Deil', // Admin user
       icon: '📦',
       date: 'Just now',
       timestamp: Date.now(),
@@ -153,7 +153,7 @@ router.put('/:id', async (req, res) => {
       assetId: equipment.id,
       action: 'Updated',
       actionType: 'Updated',
-      user: 'Admin',
+      user: 'David Deil', // Admin user
       icon: '✏️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -197,7 +197,7 @@ router.delete('/:id', async (req, res) => {
       assetId: equipment.id,
       action: 'Deleted',
       actionType: 'Deleted',
-      user: 'Admin',
+      user: 'David Deil', // Admin user
       icon: '🗑️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -285,7 +285,7 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
       action: 'Document Uploaded',
       actionType: 'Updated',
       details: `Uploaded: ${req.file.originalname}`,
-      user: 'Admin',
+      user: 'David Deil', // Admin user
       icon: '📄',
       date: 'Just now',
       timestamp: Date.now(),
@@ -352,7 +352,7 @@ router.delete('/:id/document/:fileId', async (req, res) => {
       action: 'Document Deleted',
       actionType: 'Updated',
       details: `Deleted: ${file.name}`,
-      user: 'Admin',
+      user: 'David Deil', // Admin user
       icon: '🗑️',
       date: 'Just now',
       timestamp: Date.now(),

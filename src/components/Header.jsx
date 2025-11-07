@@ -38,18 +38,30 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
   /**
    * Fetch current user data from backend
+   * Automatically logs in the admin user (David Deil - admin@deil.com)
    */
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        // For now, fetch the first user as the logged-in user
-        // In a real app, this would use authentication to get the current user
+        // Fetch the admin user by email
         const response = await fetch("http://localhost:5000/api/users");
         if (response.ok) {
           const users = await response.json();
-          if (users.length > 0) {
-            // Get the first user or implement proper auth logic
+          // Find the admin user (David Deil)
+          const adminUser = users.find(
+            (user) =>
+              user.email === "admin@deil.com" ||
+              user.role === "Administrator" ||
+              user.name === "David Deil"
+          );
+
+          if (adminUser) {
+            setCurrentUser(adminUser);
+            console.log("Logged in as:", adminUser.name, "-", adminUser.email);
+          } else if (users.length > 0) {
+            // Fallback to first user if admin not found
             setCurrentUser(users[0]);
+            console.warn("Admin user not found, using first user");
           }
         }
       } catch (error) {
