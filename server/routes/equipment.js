@@ -12,6 +12,11 @@ const path = require('path');
 const fs = require('fs');
 const Equipment = require('../models/Equipment');
 const Activity = require('../models/Activity');
+const {
+  createNewAssetNotification,
+  createStatusChangeNotification,
+  createAssignmentNotification,
+} = require('../utils/notificationHelper');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -107,6 +112,9 @@ router.post('/', async (req, res) => {
     });
     await activity.save();
 
+    // Create notification for new asset
+    await createNewAssetNotification(equipment);
+
     res.status(201).json(equipment);
   } catch (error) {
     console.error('Error creating equipment:', error);
@@ -126,15 +134,18 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   try {
+    // Get old equipment data first to check for changes
+    const oldEquipment = await Equipment.findOne({ id: req.params.id });
+    
+    if (!oldEquipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+
     const equipment = await Equipment.findOneAndUpdate(
       { id: req.params.id },
       { ...req.body, lastModified: new Date() },
       { new: true, runValidators: true }
     );
-
-    if (!equipment) {
-      return res.status(404).json({ message: 'Equipment not found' });
-    }
 
     // Log activity
     const activity = new Activity({
@@ -148,6 +159,17 @@ router.put('/:id', async (req, res) => {
       timestamp: Date.now(),
     });
     await activity.save();
+
+    // Create notifications for specific changes
+    // Status change notification
+    if (oldEquipment.status !== equipment.status) {
+      await createStatusChangeNotification(equipment, oldEquipment.status, equipment.status);
+    }
+
+    // Assignment change notification
+    if (oldEquipment.assignedTo !== equipment.assignedTo && equipment.assignedTo) {
+      await createAssignmentNotification(equipment, equipment.assignedTo);
+    }
 
     res.json(equipment);
   } catch (error) {

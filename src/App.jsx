@@ -38,6 +38,7 @@ import {
   EquipmentProvider,
   EquipmentContext,
 } from "./context/EquipmentContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
 import AssetsManagement from "./components/AssetsManagement";
@@ -267,21 +268,24 @@ function AppContent() {
  * App component (Root Component)
  *
  * Entry point of the application that provides global context.
- * Wraps AppContent with EquipmentProvider to make equipment/asset data
- * available to all child components throughout the application.
+ * Wraps AppContent with EquipmentProvider and NotificationProvider to make
+ * equipment/asset data and notifications available to all child components.
  *
  * Context Provided:
  * - Equipment/Asset data (items array)
  * - Recent activity logs
  * - Functions to add, update, delete equipment
+ * - Notifications system with real-time updates
  * - Helper functions like getById for retrieving specific items
  *
- * @returns {JSX.Element} Application with context provider wrapper
+ * @returns {JSX.Element} Application with context provider wrappers
  */
 function App() {
   return (
     <EquipmentProvider>
-      <AppContent />
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </EquipmentProvider>
   );
 }
