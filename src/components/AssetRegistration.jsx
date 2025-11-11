@@ -64,12 +64,18 @@ import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import QRCode from "react-qr-code";
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 const AssetRegistration = ({ onSuccess, onCancel }) => {
   // Access global equipment context to add new assets
   const { addEquipment } = useContext(EquipmentContext);
 
   // Company name - can be configured or fetched from settings
   const [companyName] = useState("ASE"); // Default company name
+
+  // Tags state - fetched from Tag Management
+  const [tags, setTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(true);
 
   // Form state: Stores all input field values
   const [formData, setFormData] = useState({
@@ -121,6 +127,37 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     const randomNum = Math.floor(100000 + Math.random() * 900000);
 
     return `${companyAbbr}-${categoryAbbr}-${locationAbbr}-${randomNum}`;
+  };
+
+  /**
+   * Fetch tags from Tag Management on component mount
+   */
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setLoadingTags(true);
+        const response = await fetch(`${API_BASE_URL}/tags`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch tags");
+        }
+        const data = await response.json();
+        setTags(data);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+        setTags([]);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, []);
+
+  /**
+   * Get tags by category
+   */
+  const getTagsByCategory = (category) => {
+    return tags.filter((tag) => tag.category === category);
   };
 
   /**
@@ -594,13 +631,18 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   onChange={handleChange}
                   required
                   className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  disabled={loadingTags}
                 >
-                  <option value="">Select a category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Vehicles">Vehicles</option>
-                  <option value="Equipment">Equipment</option>
-                  <option value="IT Equipment">IT Equipment</option>
+                  <option value="">
+                    {loadingTags
+                      ? "Loading categories..."
+                      : "Select a category"}
+                  </option>
+                  {getTagsByCategory("Asset Type").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>
@@ -618,18 +660,16 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   onChange={handleChange}
                   required
                   className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  disabled={loadingTags}
                 >
-                  <option value="">Select a location</option>
-                  <option value="Headquarters - Building A">
-                    Headquarters - Building A
+                  <option value="">
+                    {loadingTags ? "Loading locations..." : "Select a location"}
                   </option>
-                  <option value="Remote Office - East">
-                    Remote Office - East
-                  </option>
-                  <option value="Warehouse One">Warehouse One</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Main Office">Main Office</option>
-                  <option value="Storage Room">Storage Room</option>
+                  {getTagsByCategory("Location").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>
@@ -686,6 +726,31 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
               </label>
             </div>
 
+            {/* Status */}
+            <div className="md:col-span-1">
+              <label className="flex flex-col w-full">
+                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                  Status
+                </p>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  disabled={loadingTags}
+                >
+                  <option value="">
+                    {loadingTags ? "Loading statuses..." : "Select status"}
+                  </option>
+                  {getTagsByCategory("Status").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             {/* Maintenance Period */}
             <div className="md:col-span-1">
               <label className="flex flex-col w-full">
@@ -738,16 +803,18 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   value={formData.department}
                   onChange={handleChange}
                   className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  disabled={loadingTags}
                 >
-                  <option value="">Select department</option>
-                  <option value="IT">IT</option>
-                  <option value="HR">HR</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Sales">Sales</option>
-                  <option value="Facilities">Facilities</option>
-                  <option value="Administration">Administration</option>
+                  <option value="">
+                    {loadingTags
+                      ? "Loading departments..."
+                      : "Select department"}
+                  </option>
+                  {getTagsByCategory("Department").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>

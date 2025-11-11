@@ -76,12 +76,18 @@
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 const EditAsset = ({ assetId, onSave, onCancel }) => {
   // Access global equipment context
   const { items, updateEquipment } = useContext(EquipmentContext);
 
   // Find the asset to edit
   const asset = items.find((item) => item.id === assetId);
+
+  // Tags state - fetched from Tag Management
+  const [tags, setTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(true);
 
   // State: Form data pre-populated with existing asset data
   const [formData, setFormData] = useState({
@@ -154,7 +160,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         setAttachedFiles(asset.attachedFiles);
       }
     }
-  }, [asset]);
+  }, []);
 
   // Fetch users for assignment dropdown
   useEffect(() => {
@@ -171,6 +177,35 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
     };
     fetchUsers();
   }, []);
+
+  // Fetch tags from Tag Management on component mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setLoadingTags(true);
+        const response = await fetch(`${API_BASE_URL}/tags`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch tags");
+        }
+        const data = await response.json();
+        setTags(data);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+        setTags([]);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, []);
+
+  /**
+   * Get tags by category
+   */
+  const getTagsByCategory = (category) => {
+    return tags.filter((tag) => tag.category === category);
+  };
 
   // Handle asset not found
   if (!asset) {
@@ -406,16 +441,16 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                   value={formData.category}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
+                  disabled={loadingTags}
                 >
-                  <option value="">Select category</option>
-                  <option value="Computers">Computers</option>
-                  <option value="Laptops">Laptops</option>
-                  <option value="Monitors">Monitors</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Printers">Printers</option>
-                  <option value="Servers">Servers</option>
-                  <option value="Smartphones">Smartphones</option>
-                  <option value="Tablets">Tablets</option>
+                  <option value="">
+                    {loadingTags ? "Loading categories..." : "Select category"}
+                  </option>
+                  {getTagsByCategory("Asset Type").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -429,16 +464,16 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                   value={formData.location}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
+                  disabled={loadingTags}
                 >
-                  <option value="">Select location</option>
-                  <option value="New York Office">New York Office</option>
-                  <option value="London Office">London Office</option>
-                  <option value="Tokyo Office">Tokyo Office</option>
-                  <option value="Remote (Employee Home)">
-                    Remote (Employee Home)
+                  <option value="">
+                    {loadingTags ? "Loading locations..." : "Select location"}
                   </option>
-                  <option value="Data Center A">Data Center A</option>
-                  <option value="Warehouse">Warehouse</option>
+                  {getTagsByCategory("Location").map((tag) => (
+                    <option key={tag._id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 

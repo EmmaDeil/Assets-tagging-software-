@@ -96,7 +96,7 @@ export default function AssetsManagement({
       const matchesLocation =
         locationFilter === "All" || asset.location === locationFilter;
 
-      // Advanced filters (if applied)
+      // Advanced filters (if applied) - Always use AND logic
       let matchesAdvanced = true;
       if (advancedFilters) {
         const filters = advancedFilters;
@@ -104,19 +104,13 @@ export default function AssetsManagement({
         // Asset Type filter
         if (filters.assetType && filters.assetType !== "All Types") {
           const typeMatch = asset.category === filters.assetType;
-          if (filters.logicalOperator === "AND" && !typeMatch)
-            matchesAdvanced = false;
-          if (filters.logicalOperator === "OR" && typeMatch)
-            matchesAdvanced = true;
+          if (!typeMatch) matchesAdvanced = false;
         }
 
         // Status filter (from advanced search)
         if (filters.status && filters.status !== "Any Status") {
           const statusMatch = asset.status === filters.status;
-          if (filters.logicalOperator === "AND" && !statusMatch)
-            matchesAdvanced = false;
-          if (filters.logicalOperator === "OR" && statusMatch)
-            matchesAdvanced = true;
+          if (!statusMatch) matchesAdvanced = false;
         }
 
         // Purchase date range filter
@@ -134,10 +128,7 @@ export default function AssetsManagement({
             if (assetDate > toDate) dateMatch = false;
           }
 
-          if (filters.logicalOperator === "AND" && !dateMatch)
-            matchesAdvanced = false;
-          if (filters.logicalOperator === "OR" && dateMatch)
-            matchesAdvanced = true;
+          if (!dateMatch) matchesAdvanced = false;
         }
 
         // Cost range filter
@@ -153,19 +144,13 @@ export default function AssetsManagement({
             costMatch = false;
           }
 
-          if (filters.logicalOperator === "AND" && !costMatch)
-            matchesAdvanced = false;
-          if (filters.logicalOperator === "OR" && costMatch)
-            matchesAdvanced = true;
+          if (!costMatch) matchesAdvanced = false;
         }
 
         // Location filter (from advanced search)
         if (filters.location && filters.location !== "All Locations") {
           const locationMatch = asset.location === filters.location;
-          if (filters.logicalOperator === "AND" && !locationMatch)
-            matchesAdvanced = false;
-          if (filters.logicalOperator === "OR" && locationMatch)
-            matchesAdvanced = true;
+          if (!locationMatch) matchesAdvanced = false;
         }
       }
 

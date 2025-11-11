@@ -25,13 +25,17 @@
 
 import React, { useState, useEffect } from "react";
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 export default function AdvancedSearch({
   isOpen = false,
   onClose,
   onApplyFilters,
-  assetTypes = [],
-  locations = [],
 }) {
+  // Tags state - fetched from Tag Management
+  const [tags, setTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(true);
+
   // Filter state
   const [filters, setFilters] = useState({
     assetType: "All Types",
@@ -41,8 +45,38 @@ export default function AdvancedSearch({
     costMin: "",
     costMax: "",
     location: "All Locations",
-    logicalOperator: "AND",
   });
+
+  /**
+   * Fetch tags from Tag Management on component mount
+   */
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        setLoadingTags(true);
+        const response = await fetch(`${API_BASE_URL}/tags`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch tags");
+        }
+        const data = await response.json();
+        setTags(data);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+        setTags([]);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, []);
+
+  /**
+   * Get tags by category
+   */
+  const getTagsByCategory = (category) => {
+    return tags.filter((tag) => tag.category === category);
+  };
 
   /**
    * Handle input changes
@@ -68,7 +102,6 @@ export default function AdvancedSearch({
       costMin: "",
       costMax: "",
       location: "All Locations",
-      logicalOperator: "AND",
     });
   };
 
@@ -111,7 +144,7 @@ export default function AdvancedSearch({
       {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-white/80 dark:bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
           onClick={onClose}
         />
       )}
@@ -159,24 +192,14 @@ export default function AdvancedSearch({
                 id="asset-type"
                 value={filters.assetType}
                 onChange={(e) => handleChange("assetType", e.target.value)}
+                disabled={loadingTags}
               >
                 <option>All Types</option>
-                {assetTypes.length > 0 ? (
-                  assetTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option>Laptops</option>
-                    <option>Monitors</option>
-                    <option>Servers</option>
-                    <option>Smartphones</option>
-                    <option>Tablets</option>
-                    <option>Printers</option>
-                  </>
-                )}
+                {getTagsByCategory("Asset Type").map((tag) => (
+                  <option key={tag._id} value={tag.name}>
+                    {tag.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -193,13 +216,14 @@ export default function AdvancedSearch({
                 id="status"
                 value={filters.status}
                 onChange={(e) => handleChange("status", e.target.value)}
+                disabled={loadingTags}
               >
                 <option>Any Status</option>
-                <option>In Use</option>
-                <option>Available</option>
-                <option>Under Maintenance</option>
-                <option>Retired</option>
-                <option>Lost</option>
+                {getTagsByCategory("Status").map((tag) => (
+                  <option key={tag._id} value={tag.name}>
+                    {tag.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -268,57 +292,15 @@ export default function AdvancedSearch({
                 id="location"
                 value={filters.location}
                 onChange={(e) => handleChange("location", e.target.value)}
+                disabled={loadingTags}
               >
                 <option>All Locations</option>
-                {locations.length > 0 ? (
-                  locations.map((location) => (
-                    <option key={location} value={location}>
-                      {location}
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option>Headquarters</option>
-                    <option>East Wing Office</option>
-                    <option>Data Center A</option>
-                    <option>West Campus</option>
-                    <option>Remote Office</option>
-                  </>
-                )}
+                {getTagsByCategory("Location").map((tag) => (
+                  <option key={tag._id} value={tag.name}>
+                    {tag.name}
+                  </option>
+                ))}
               </select>
-            </div>
-
-            {/* Logical Operator */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Logical Operator
-              </label>
-              <div className="flex flex-col space-y-2">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    className="form-radio text-blue-600 focus:ring-blue-500 w-4 h-4"
-                    name="logical-operator"
-                    type="radio"
-                    checked={filters.logicalOperator === "AND"}
-                    onChange={() => handleChange("logicalOperator", "AND")}
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    AND (match all criteria)
-                  </span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    className="form-radio text-blue-600 focus:ring-blue-500 w-4 h-4"
-                    name="logical-operator"
-                    type="radio"
-                    checked={filters.logicalOperator === "OR"}
-                    onChange={() => handleChange("logicalOperator", "OR")}
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    OR (match any criteria)
-                  </span>
-                </label>
-              </div>
             </div>
 
             {/* Active Filters Summary */}
