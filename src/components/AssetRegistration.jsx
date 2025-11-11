@@ -81,6 +81,11 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("success"); // success, error, info
+
   // Form state: Stores all input field values
   const [formData, setFormData] = useState({
     name: "",
@@ -105,6 +110,16 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
+
+  /**
+   * Show toast notification
+   */
+  const showToastNotification = (message, type = "success") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   /**
    * Generate Tag ID based on category, location, and company name
@@ -251,7 +266,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       !formData.category ||
       !formData.location
     ) {
-      alert("Please fill in all required fields");
+      showToastNotification("Please fill in all required fields", "error");
       return;
     }
 
@@ -288,7 +303,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       console.log("Success modal should be visible");
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while saving the asset. Please try again.");
+      showToastNotification(
+        `Failed to save asset: ${error.message || "Please try again"}`,
+        "error"
+      );
     }
   };
 
@@ -479,7 +497,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       setShowCameraModal(true);
     } catch (error) {
       console.error("Error accessing camera:", error);
-      alert("Unable to access camera. Please check permissions.");
+      showToastNotification(
+        "Unable to access camera. Please check permissions.",
+        "error"
+      );
     }
   };
 
@@ -1128,6 +1149,30 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                 Capture Photo
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
+          <div
+            className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
+              toastType === "success"
+                ? "bg-green-500 text-white"
+                : toastType === "error"
+                ? "bg-red-500 text-white"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            <span className="material-symbols-outlined">
+              {toastType === "success"
+                ? "check_circle"
+                : toastType === "error"
+                ? "error"
+                : "info"}
+            </span>
+            <p className="font-medium">{toastMessage}</p>
           </div>
         </div>
       )}

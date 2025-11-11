@@ -22,21 +22,7 @@ const equipmentSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: [
-        'Electronics', 
-        'Furniture', 
-        'Vehicles', 
-        'Equipment', 
-        'IT Equipment',
-        'Computers', 
-        'Laptops', 
-        'Monitors', 
-        'Printers', 
-        'Servers', 
-        'Smartphones', 
-        'Tablets', 
-        'Other'
-      ],
+      trim: true,
       default: 'Other',
     },
     location: {
@@ -45,7 +31,7 @@ const equipmentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['In Use', 'Available', 'Under Maintenance', 'Retired', 'Lost'],
+      trim: true,
       default: 'In Use',
     },
     model: {

@@ -7,16 +7,49 @@
 const express = require('express');
 const router = express.Router();
 const Tag = require('../models/Tag');
+const Equipment = require('../models/Equipment');
 
 /**
  * @route   GET /api/tags
- * @desc    Get all tags
+ * @desc    Get all tags with asset counts
  * @access  Public
  */
 router.get('/', async (req, res) => {
   try {
     const tags = await Tag.find().sort({ category: 1, name: 1 });
-    res.json(tags);
+    
+    // Calculate asset count for each tag
+    const tagsWithCounts = await Promise.all(
+      tags.map(async (tag) => {
+        let assetCount = 0;
+        
+        // Count assets based on tag category
+        switch (tag.category) {
+          case 'Asset Type':
+            assetCount = await Equipment.countDocuments({ category: tag.name });
+            break;
+          case 'Location':
+            assetCount = await Equipment.countDocuments({ location: tag.name });
+            break;
+          case 'Status':
+            assetCount = await Equipment.countDocuments({ status: tag.name });
+            break;
+          case 'Department':
+            assetCount = await Equipment.countDocuments({ department: tag.name });
+            break;
+          default:
+            assetCount = 0;
+        }
+        
+        // Return tag as plain object with assetCount
+        return {
+          ...tag.toObject(),
+          assetCount
+        };
+      })
+    );
+    
+    res.json(tagsWithCounts);
   } catch (error) {
     console.error('Error fetching tags:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
