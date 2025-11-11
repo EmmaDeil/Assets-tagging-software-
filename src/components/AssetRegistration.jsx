@@ -77,6 +77,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(true);
 
+  // Users state - fetched for Assigned To dropdown
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
   // Form state: Stores all input field values
   const [formData, setFormData] = useState({
     name: "",
@@ -154,6 +158,30 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
   }, []);
 
   /**
+   * Fetch users from User Management on component mount
+   */
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const response = await fetch(`${API_BASE_URL}/users`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  /**
    * Get tags by category
    */
   const getTagsByCategory = (category) => {
@@ -210,7 +238,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
    *
    * @param {Event} e - Form submit event
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -248,10 +276,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
 
       console.log("Created asset object:", newAsset);
 
-      // Add equipment to context (sends to MongoDB)
-      addEquipment(newAsset);
+      // Add equipment to context (sends to MongoDB) - WAIT for it to complete
+      await addEquipment(newAsset);
 
-      console.log("Asset added to context");
+      console.log("Asset successfully added to database");
 
       // Store registered asset and show success modal
       setRegisteredAsset(newAsset);
@@ -781,14 +809,24 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                 <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
                   Assigned To
                 </p>
-                <input
-                  type="text"
+                <select
                   name="assignedTo"
                   value={formData.assignedTo}
                   onChange={handleChange}
-                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
-                  placeholder="Employee name or ID"
-                />
+                  className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
+                  disabled={loadingUsers}
+                >
+                  <option value="">
+                    {loadingUsers
+                      ? "Loading users..."
+                      : "Select user (optional)"}
+                  </option>
+                  {users.map((user) => (
+                    <option key={user._id} value={user.name}>
+                      {user.name} {user.email ? `(${user.email})` : ""}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
 
