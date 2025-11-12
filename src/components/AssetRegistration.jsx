@@ -325,7 +325,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       description: "",
       model: "",
       serialNumber: "",
-      status: "In Use",
+      status: "Available",
       maintenancePeriod: "",
       assignedTo: "",
       department: "",

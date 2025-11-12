@@ -60,6 +60,7 @@
 
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
+import QRCode from "react-qr-code";
 
 const AssetDetails = ({ assetId, onClose, onEdit }) => {
   // Access global equipment context for asset data and activities
@@ -67,6 +68,9 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
 
   // State: Active tab in the tabbed interface
   const [activeTab, setActiveTab] = useState("activity");
+
+  // State: QR Code visibility
+  const [showQRCode, setShowQRCode] = useState(false);
 
   // State: Maintenance records
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
@@ -415,6 +419,66 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     });
   };
 
+  // Print QR Code
+  const handlePrintQRCode = () => {
+    const printWindow = window.open("", "_blank");
+    const qrElement = document.getElementById("asset-detail-qr-code");
+
+    if (qrElement) {
+      const svgData = qrElement.innerHTML;
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>QR Code - ${asset.name}</title>
+            <style>
+              body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                font-family: Arial, sans-serif;
+              }
+              .qr-container {
+                text-align: center;
+                padding: 20px;
+              }
+              h1 {
+                margin-bottom: 10px;
+                font-size: 24px;
+              }
+              p {
+                margin: 5px 0;
+                color: #666;
+              }
+              .qr-code {
+                margin: 20px 0;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="qr-container">
+              <h1>${asset.name}</h1>
+              <p><strong>Tag ID:</strong> ${asset.id}</p>
+              <p><strong>Location:</strong> ${asset.location || "N/A"}</p>
+              <div class="qr-code">
+                ${svgData}
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
+  };
+
   // Format time
   const formatTime = (dateString) => {
     if (!dateString) return "";
@@ -582,6 +646,51 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                       </span>
                     </div>
                   )}
+
+                  {/* QR Code Buttons */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowQRCode(!showQRCode)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          qr_code
+                        </span>
+                        {showQRCode ? "Hide" : "Show"} QR
+                      </button>
+                      <button
+                        onClick={handlePrintQRCode}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          print
+                        </span>
+                        Print QR
+                      </button>
+                    </div>
+
+                    {/* QR Code Display - Small, underneath buttons */}
+                    {showQRCode && (
+                      <div className="mt-4 flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                        <div
+                          id="asset-detail-qr-code"
+                          className="bg-white p-3 rounded-lg"
+                        >
+                          <QRCode
+                            value={`ASSET:${asset.id}|${asset.name}|${
+                              asset.location || "N/A"
+                            }`}
+                            size={120}
+                            level="H"
+                          />
+                        </div>
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                          {asset.id}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </aside>

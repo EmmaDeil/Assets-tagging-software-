@@ -266,7 +266,7 @@ export default function AssetsManagement({
             onClick={onAddNew}
             className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal hover:bg-blue-700 transition-colors gap-2"
           >
-            <span className="text-xl">+</span>
+            {/* <span className="text-xl">+</span> */}
             <span className="truncate">Add New Asset</span>
           </button>
           <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white border border-gray-300 text-gray-900 text-sm font-medium leading-normal hover:bg-gray-50 transition-colors gap-2">
