@@ -1,52 +1,42 @@
 # ASE Tag Software - Backend Server
 
-## Setup Instructions
+Backend API server for the ASE Tag Software asset management system.
 
-### 1. Install MongoDB
+## 🚀 Quick Start
 
-**Option A: Local MongoDB**
-- Download and install MongoDB Community Edition from [mongodb.com](https://www.mongodb.com/try/download/community)
-- Start MongoDB service:
-  ```bash
-  # Windows (as admin)
-  net start MongoDB
-  
-  # macOS/Linux
-  sudo systemctl start mongod
-  ```
-
-**Option B: MongoDB Atlas (Cloud)**
-- Sign up at [mongodb.com/atlas](https://www.mongodb.com/cloud/atlas)
-- Create a free cluster
-- Get your connection string
-- Update `.env` file with your MongoDB Atlas URI
-
-### 2. Configure Environment Variables
-
-Copy `.env.example` to `.env` and update the values:
-
+### Development
 ```bash
-# For local MongoDB
-MONGODB_URI=mongodb://localhost:27017/ase-tag-software
-
-# For MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ase-tag-software
-
-PORT=5000
-NODE_ENV=development
+npm install
+npm start
 ```
 
-### 3. Start the Application
+Server runs on: http://localhost:5000
 
-From the root directory:
-
+### Production
 ```bash
-# Start both server and client concurrently
-npm run dev
+NODE_ENV=production npm start
+```
 
-# Or start them separately:
-# Terminal 1 - Server
-npm run server
+## 📦 Tech Stack
+
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MongoDB** - Database (via Mongoose)
+- **Multer** - File upload handling
+- **CORS** - Cross-origin resource sharing
+
+## 🔧 Configuration
+
+Create a `.env` file in the server directory:
+
+```env
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+CLIENT_URL=your_frontend_url
+```
+
+See `.env.example` for reference.
 
 # Terminal 2 - Client  
 npm run client

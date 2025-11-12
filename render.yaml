@@ -1,0 +1,21 @@
+# Render Blueprint for ASE Tag Software Server
+# See https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: ase-tag-software-server
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false  # Set manually in Render dashboard
+      - key: CLIENT_URL
+        sync: false  # Set manually in Render dashboard
+    healthCheckPath: /api/health
