@@ -96,7 +96,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     description: "",
     model: "",
     serialNumber: "",
-    status: "In Use",
+    status: "Available",
     maintenancePeriod: "",
     assignedTo: "",
     department: "",
@@ -840,7 +840,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   <option value="">
                     {loadingUsers
                       ? "Loading users..."
-                      : "Select user (optional)"}
+                      : "Select user"}
                   </option>
                   {users.map((user) => (
                     <option key={user._id} value={user.name}>

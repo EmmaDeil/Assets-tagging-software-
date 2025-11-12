@@ -447,14 +447,19 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
               }
               h1 {
                 margin-bottom: 10px;
-                font-size: 24px;
+                font-size: 18px;
               }
               p {
                 margin: 5px 0;
                 color: #666;
+                font-size: 12px;
               }
               .qr-code {
                 margin: 20px 0;
+              }
+              .qr-code svg {
+                width: 64px !important;
+                height: 64px !important;
               }
             </style>
           </head>
@@ -675,13 +680,13 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                       <div className="mt-4 flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                         <div
                           id="asset-detail-qr-code"
-                          className="bg-white p-3 rounded-lg"
+                          className="bg-white p-2 rounded-lg"
                         >
                           <QRCode
                             value={`ASSET:${asset.id}|${asset.name}|${
                               asset.location || "N/A"
                             }`}
-                            size={120}
+                            size={64}
                             level="H"
                           />
                         </div>
