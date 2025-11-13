@@ -86,7 +86,7 @@ export default function Settings() {
    */
   const loadSettings = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/settings");
+      const response = await fetch(`${API_BASE_URL}/settings`);
       if (!response.ok) throw new Error("Failed to fetch settings");
 
       const data = await response.json();
@@ -128,7 +128,7 @@ export default function Settings() {
   const loadUsers = async () => {
     try {
       setLoadingUsers(true);
-      const response = await fetch("http://localhost:5000/api/settings/users");
+      const response = await fetch(`${API_BASE_URL}/settings/users`);
       if (!response.ok) throw new Error("Failed to fetch users");
 
       const data = await response.json();
@@ -146,7 +146,7 @@ export default function Settings() {
   const loadSystemStats = async () => {
     try {
       setLoadingStats(true);
-      const response = await fetch("http://localhost:5000/api/settings/stats");
+      const response = await fetch(`${API_BASE_URL}/settings/stats`);
       if (!response.ok) throw new Error("Failed to fetch stats");
 
       const data = await response.json();
@@ -164,7 +164,7 @@ export default function Settings() {
   const handleSaveSettings = async () => {
     try {
       setSaving(true);
-      const response = await fetch("http://localhost:5000/api/settings", {
+      const response = await fetch(`${API_BASE_URL}/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +199,7 @@ export default function Settings() {
   const handleSaveBranding = async () => {
     try {
       setSaving(true);
-      const response = await fetch("http://localhost:5000/api/settings", {
+      const response = await fetch(`${API_BASE_URL}/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -228,7 +228,7 @@ export default function Settings() {
   const handleRegenerateApiKey = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/settings/regenerate-api-key",
+        `${API_BASE_URL}/settings/regenerate-api-key`,
         {
           method: "POST",
           headers: {
@@ -265,7 +265,7 @@ export default function Settings() {
     try {
       setIsDeleting(true);
       const response = await fetch(
-        "http://localhost:5000/api/settings/delete-all-assets",
+        `${API_BASE_URL}/settings/delete-all-assets`,
         {
           method: "DELETE",
           headers: {
@@ -311,7 +311,7 @@ export default function Settings() {
   const handleUpdateUserRole = async (userId, newRole) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/settings/users/${userId}/role`,
+        `${API_BASE_URL}/settings/users/${userId}/role`,
         {
           method: "PUT",
           headers: {

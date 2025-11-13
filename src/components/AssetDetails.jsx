@@ -61,6 +61,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import QRCode from "react-qr-code";
+import API_BASE_URL from "../config/api";
 
 const AssetDetails = ({ assetId, onClose, onEdit }) => {
   // Access global equipment context for asset data and activities
@@ -108,7 +109,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
       try {
         setLoadingMaintenance(true);
         const response = await fetch(
-          `http://localhost:5000/api/maintenance?assetId=${assetId}`
+          `${API_BASE_URL}/maintenance?assetId=${assetId}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -149,7 +150,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
         cost: parseFloat(maintenanceFormData.cost) || 0,
       };
 
-      const response = await fetch("http://localhost:5000/api/maintenance", {
+      const response = await fetch(`${API_BASE_URL}/maintenance`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -192,7 +193,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/maintenance/${maintenanceId}`,
+        `${API_BASE_URL}/maintenance/${maintenanceId}`,
         {
           method: "DELETE",
         }
@@ -259,7 +260,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
       formData.append("document", file);
 
       const response = await fetch(
-        `http://localhost:5000/api/equipment/${asset.id}/upload`,
+        `${API_BASE_URL}/equipment/${asset.id}/upload`,
         {
           method: "POST",
           body: formData,
@@ -293,7 +294,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/equipment/${asset.id}/document/${fileId}`,
+        `${API_BASE_URL}/equipment/${asset.id}/document/${fileId}`,
         {
           method: "DELETE",
         }
@@ -874,7 +875,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                             </div>
                             <div className="flex items-center space-x-2 ml-4">
                               <a
-                                href={`http://localhost:5000/api/equipment/${asset.id}/document/${doc.id}/download`}
+                                href={`${API_BASE_URL}/equipment/${asset.id}/document/${doc.id}/download`}
                                 download={doc.name}
                                 target="_blank"
                                 rel="noopener noreferrer"

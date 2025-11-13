@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import { NotificationContext } from "../context/NotificationContext";
+import API_BASE_URL from "../config/api";
 
 export default function Header({ activePage = "Dashboard", onNavigate }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -44,7 +45,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
     const fetchCurrentUser = async () => {
       try {
         // Fetch the admin user by email
-        const response = await fetch("http://localhost:5000/api/users");
+        const response = await fetch(`${API_BASE_URL}/users`);
         if (response.ok) {
           const users = await response.json();
           // Find the admin user (David Deil)
