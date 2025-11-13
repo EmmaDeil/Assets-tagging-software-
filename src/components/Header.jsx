@@ -27,6 +27,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Access notification context
   const {
@@ -87,11 +88,14 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
       ) {
         setShowNotifications(false);
       }
+      if (showMobileMenu && !event.target.closest(".mobile-menu-container")) {
+        setShowMobileMenu(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showUserMenu, showNotifications]);
+  }, [showUserMenu, showNotifications, showMobileMenu]);
 
   /**
    * Handle navigation click
@@ -104,10 +108,10 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   };
 
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-gray-200 px-6 sm:px-10 py-4 bg-white sticky top-0 z-10 shadow-sm">
+    <header className="flex items-center justify-between border-b border-gray-200 px-3 sm:px-6 md:px-10 py-3 sm:py-4 bg-white sticky top-0 z-50 shadow-sm overflow-x-hidden">
       {/* Left side: Logo */}
-      <div className="flex items-center gap-3 text-gray-900">
-        <div className="w-6 h-6 text-blue-600">
+      <div className="flex items-center gap-2 sm:gap-3 text-gray-900 shrink-0">
+        <div className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0">
           <svg
             fill="none"
             viewBox="0 0 48 48"
@@ -120,7 +124,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           </svg>
         </div>
         <h2
-          className="text-xl font-bold leading-tight tracking-tight cursor-pointer"
+          className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight cursor-pointer truncate"
           onClick={() => handleNavClick("Dashboard")}
         >
           AssetManager
@@ -128,7 +132,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
       </div>
 
       {/* Right side: Navigation, Search, Notifications, Profile */}
-      <div className="flex flex-1 justify-end gap-4 sm:gap-8 items-center">
+      <div className="flex flex-1 justify-end gap-2 sm:gap-4 md:gap-8 items-center min-w-0">
         {/* Navigation Menu - Hidden on mobile */}
         <nav className="hidden md:flex items-center gap-8">
           <button
@@ -182,14 +186,103 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
             Settings
           </button>
         </nav>
-        {/* Notifications Button */}
-        <div className="relative notification-container">
+
+        {/* Mobile Menu Button - Only visible on mobile */}
+        <div className="md:hidden relative mobile-menu-container shrink-0">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label="Toggle mobile menu"
           >
             <svg
-              className="w-6 h-6 text-gray-600 dark:text-gray-300"
+              className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+            </svg>
+          </button>
+
+          {/* Mobile Menu Dropdown */}
+          {showMobileMenu && (
+            <div className="fixed right-2 top-16 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-60 py-2">
+              <button
+                onClick={() => {
+                  handleNavClick("Assets");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Assets"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">📦 Assets</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavClick("Tags");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Tags"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">🏷️ Tags</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavClick("Users");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Users"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">👥 Users</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavClick("Reports");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Reports"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">📊 Reports</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavClick("Settings");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Settings"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">⚙️ Settings</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Notifications Button */}
+        <div className="relative notification-container shrink-0">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+          >
+            <svg
+              className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 dark:text-gray-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -212,7 +305,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-[500px] overflow-hidden flex flex-col">
+            <div className="fixed md:absolute right-2 md:right-0 top-16 md:top-auto md:mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-60 max-h-[500px] overflow-hidden flex flex-col">
               {/* Header */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">
@@ -339,10 +432,10 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
         </div>
 
         {/* User Profile Picture */}
-        <div className="relative user-menu-container">
+        <div className="relative user-menu-container shrink-0">
           <div
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 h-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex items-center justify-center text-white font-bold text-sm"
+            className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-9 h-9 sm:w-10 sm:h-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex items-center justify-center text-white font-bold text-xs sm:text-sm"
             style={{
               backgroundColor: currentUser?.profilePhoto
                 ? "transparent"
@@ -363,7 +456,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
           {/* User Dropdown Menu */}
           {showUserMenu && currentUser && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+            <div className="fixed md:absolute right-2 md:right-0 top-16 md:top-auto md:mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-60">
               {/* User Info */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">

@@ -4,6 +4,9 @@
 body {
   background-color: #f9fafb;
   color: #111827;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 /* Toast notification slide-up animation */
