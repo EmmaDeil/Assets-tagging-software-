@@ -28,6 +28,12 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const notificationButtonRef = React.useRef(null);
+  const profileButtonRef = React.useRef(null);
+  const [notificationDropdownStyle, setNotificationDropdownStyle] = useState(
+    {}
+  );
+  const [profileDropdownStyle, setProfileDropdownStyle] = useState({});
 
   // Access notification context
   const {
@@ -98,6 +104,40 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   }, [showUserMenu, showNotifications, showMobileMenu]);
 
   /**
+   * Calculate dropdown positions for desktop view
+   */
+  useEffect(() => {
+    const calculatePositions = () => {
+      if (window.innerWidth >= 768) {
+        // Desktop view - calculate button positions
+        if (notificationButtonRef.current) {
+          const rect = notificationButtonRef.current.getBoundingClientRect();
+          setNotificationDropdownStyle({
+            top: `${rect.bottom + 8}px`,
+            right: `${window.innerWidth - rect.right}px`,
+          });
+        }
+        if (profileButtonRef.current) {
+          const rect = profileButtonRef.current.getBoundingClientRect();
+          setProfileDropdownStyle({
+            top: `${rect.bottom + 8}px`,
+            right: `${window.innerWidth - rect.right}px`,
+          });
+        }
+      }
+    };
+
+    calculatePositions();
+    window.addEventListener("resize", calculatePositions);
+    window.addEventListener("scroll", calculatePositions);
+
+    return () => {
+      window.removeEventListener("resize", calculatePositions);
+      window.removeEventListener("scroll", calculatePositions);
+    };
+  }, [showNotifications, showUserMenu]);
+
+  /**
    * Handle navigation click
    * @param {string} page - Page name to navigate to
    */
@@ -108,7 +148,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   };
 
   return (
-    <header className="flex items-center justify-between border-b border-gray-200 px-3 sm:px-6 md:px-10 py-3 sm:py-4 bg-white sticky top-0 z-50 shadow-sm overflow-x-hidden">
+    <header className="flex items-center justify-between border-b border-gray-200 px-3 sm:px-6 md:px-10 py-3 sm:py-4 bg-white sticky top-0 z-50 shadow-sm overflow-x-hidden overflow-y-visible">
       {/* Left side: Logo */}
       <div className="flex items-center gap-2 sm:gap-3 text-gray-900 shrink-0">
         <div className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0">
@@ -205,7 +245,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
           {/* Mobile Menu Dropdown */}
           {showMobileMenu && (
-            <div className="fixed right-2 top-16 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-60 py-2">
+            <div className="fixed right-2 top-16 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999] py-2">
               <button
                 onClick={() => {
                   handleNavClick("Assets");
@@ -276,7 +316,10 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
         </div>
 
         {/* Notifications Button */}
-        <div className="relative notification-container shrink-0">
+        <div
+          ref={notificationButtonRef}
+          className="relative notification-container shrink-0 z-50"
+        >
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
@@ -305,7 +348,14 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="fixed md:absolute right-2 md:right-0 top-16 md:top-auto md:mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-60 max-h-[500px] overflow-hidden flex flex-col">
+            <div
+              className="fixed w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999] max-h-[500px] overflow-hidden flex flex-col"
+              style={
+                window.innerWidth >= 768
+                  ? notificationDropdownStyle
+                  : { top: "4rem", right: "0.5rem" }
+              }
+            >
               {/* Header */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">
@@ -432,7 +482,10 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
         </div>
 
         {/* User Profile Picture */}
-        <div className="relative user-menu-container shrink-0">
+        <div
+          ref={profileButtonRef}
+          className="relative user-menu-container shrink-0 z-50"
+        >
           <div
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-9 h-9 sm:w-10 sm:h-10 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all flex items-center justify-center text-white font-bold text-xs sm:text-sm"
@@ -456,7 +509,14 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
 
           {/* User Dropdown Menu */}
           {showUserMenu && currentUser && (
-            <div className="fixed md:absolute right-2 md:right-0 top-16 md:top-auto md:mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-60">
+            <div
+              className="fixed w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-[9999]"
+              style={
+                window.innerWidth >= 768
+                  ? profileDropdownStyle
+                  : { top: "4rem", right: "0.5rem" }
+              }
+            >
               {/* User Info */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
