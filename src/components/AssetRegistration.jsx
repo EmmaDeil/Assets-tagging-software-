@@ -63,8 +63,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import QRCode from "react-qr-code";
-
-const API_BASE_URL = "http://localhost:5000/api";
+import API_BASE_URL from "../config/api";
 
 const AssetRegistration = ({ onSuccess, onCancel }) => {
   // Access global equipment context to add new assets
@@ -838,9 +837,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   disabled={loadingUsers}
                 >
                   <option value="">
-                    {loadingUsers
-                      ? "Loading users..."
-                      : "Select user"}
+                    {loadingUsers ? "Loading users..." : "Select user"}
                   </option>
                   {users.map((user) => (
                     <option key={user._id} value={user.name}>

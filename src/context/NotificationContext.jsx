@@ -21,6 +21,7 @@
  */
 
 import React, { createContext, useState, useEffect, useCallback } from "react";
+import API_BASE_URL from "../config/api";
 
 export const NotificationContext = createContext();
 
@@ -29,7 +30,7 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = "http://localhost:5000/api/notifications";
+  const API_URL = `${API_BASE_URL}/notifications`;
 
   /**
    * Fetch all notifications from backend

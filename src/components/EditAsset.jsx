@@ -75,8 +75,7 @@
 
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
-
-const API_BASE_URL = "http://localhost:5000/api";
+import API_BASE_URL from "../config/api";
 
 const EditAsset = ({ assetId, onSave, onCancel }) => {
   // Access global equipment context

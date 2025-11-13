@@ -21,6 +21,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import API_BASE_URL from "../config/api";
 
 export default function Settings() {
   // State for settings form
