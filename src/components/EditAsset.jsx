@@ -88,6 +88,9 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(true);
 
+  // Track if notes were originally empty (to allow editing only if empty initially)
+  const [initialNotesEmpty, setInitialNotesEmpty] = useState(true);
+
   // State: Form data pre-populated with existing asset data
   const [formData, setFormData] = useState({
     name: asset?.name || "",
@@ -138,6 +141,9 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
   // Update form data when asset is loaded or changes
   useEffect(() => {
     if (asset) {
+      // Check if notes were originally empty
+      setInitialNotesEmpty(!asset.notes || asset.notes.trim() === "");
+
       setFormData({
         name: asset.name || "",
         id: asset.id || "",
@@ -152,6 +158,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         model: asset.model || "",
         serial: asset.serial || "",
         cost: asset.cost || "",
+        currency: asset.currency || "USD",
         notes: asset.notes || "",
       });
       // Also load existing files if they exist
@@ -159,7 +166,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         setAttachedFiles(asset.attachedFiles);
       }
     }
-  }, []);
+  }, [asset]);
 
   // Fetch users for assignment dropdown
   useEffect(() => {
@@ -296,6 +303,8 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
 
     try {
       // Create updated asset object with all fields
+      // NOTE: attachedFiles should NOT be included in the update payload
+      // Files are managed separately via the /upload endpoint
       const updatedAsset = {
         ...asset,
         name: formData.name,
@@ -312,8 +321,9 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         model: formData.model,
         serial: formData.serial,
         cost: formData.cost ? parseFloat(formData.cost) : 0,
+        currency: formData.currency || "USD",
         notes: formData.notes,
-        attachedFiles: attachedFiles,
+        // Do NOT include attachedFiles - it's managed separately
         lastModified: new Date().toISOString(),
       };
 
@@ -578,35 +588,70 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                 />
               </label>
 
-              {/* Cost */}
+              {/* Cost with Currency */}
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2">
-                  Cost ($)
+                  Cost
                 </span>
-                <input
-                  type="number"
-                  name="cost"
-                  value={formData.cost}
-                  onChange={handleChange}
-                  step="0.01"
-                  min="0"
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
-                  placeholder="e.g., 1299.99"
-                />
+                <div className="flex gap-2">
+                  <select
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleChange}
+                    className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-2 text-base"
+                  >
+                    <option value="USD">USD $</option>
+                    <option value="EUR">EUR €</option>
+                    <option value="GBP">GBP £</option>
+                    <option value="JPY">JPY ¥</option>
+                    <option value="CNY">CNY ¥</option>
+                    <option value="INR">INR ₹</option>
+                    <option value="AUD">AUD $</option>
+                    <option value="CAD">CAD $</option>
+                    <option value="NGN">NGN ₦</option>
+                    <option value="ZAR">ZAR R</option>
+                    <option value="KES">KES KSh</option>
+                    <option value="GHS">GHS ₵</option>
+                  </select>
+                  <input
+                    type="number"
+                    name="cost"
+                    value={formData.cost}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
+                    placeholder="e.g., 1299.99"
+                  />
+                </div>
               </label>
 
               {/* Notes */}
               <label className="flex flex-col col-span-1 md:col-span-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2 flex items-center gap-2">
                   Notes
+                  {!initialNotesEmpty && (
+                    <span className="text-xs text-orange-600 dark:text-orange-400 font-normal">
+                      (Read-only - set during registration)
+                    </span>
+                  )}
                 </span>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
                   rows="4"
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-base"
-                  placeholder="Additional information about this asset..."
+                  readOnly={!initialNotesEmpty}
+                  className={`w-full rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-base ${
+                    !initialNotesEmpty
+                      ? "bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+                      : "bg-white dark:bg-gray-700"
+                  }`}
+                  placeholder={
+                    initialNotesEmpty
+                      ? "Additional information about this asset..."
+                      : "Description was set during registration and cannot be edited"
+                  }
                 />
               </label>
             </div>

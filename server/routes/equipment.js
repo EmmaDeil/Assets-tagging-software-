@@ -256,22 +256,26 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
     const fileBuffer = fs.readFileSync(req.file.path);
     const base64Data = fileBuffer.toString('base64');
 
-    // Create file object with base64 data
-    const fileData = {
-      name: req.file.originalname,
-      type: req.file.mimetype,
-      id: req.file.filename,
-      data: base64Data, // Store base64 in MongoDB
-      uploadDate: new Date(),
-      size: req.file.size
-    };
-
     // Add file to attachedFiles array
     if (!equipment.attachedFiles) {
       equipment.attachedFiles = [];
     }
-    equipment.attachedFiles.push(fileData);
+    
+    // Create a new plain object with explicit type casting to avoid Mongoose casting issues
+    const newFile = {
+      name: String(req.file.originalname),
+      type: String(req.file.mimetype),
+      id: String(req.file.filename),
+      data: String(base64Data),
+      uploadDate: new Date(),
+      size: Number(req.file.size)
+    };
+    
+    equipment.attachedFiles.push(newFile);
     equipment.lastModified = new Date();
+    
+    // Mark the array as modified to ensure Mongoose saves it
+    equipment.markModified('attachedFiles');
 
     await equipment.save();
 
@@ -294,11 +298,11 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
 
     // Return file data without base64 (too large for response)
     const responseFile = {
-      name: fileData.name,
-      type: fileData.type,
-      id: fileData.id,
-      uploadDate: fileData.uploadDate,
-      size: fileData.size
+      name: newFile.name,
+      type: newFile.type,
+      id: newFile.id,
+      uploadDate: newFile.uploadDate,
+      size: newFile.size
     };
 
     res.json({ 
@@ -403,6 +407,179 @@ router.get('/:id/document/:fileId/download', async (req, res) => {
   } catch (error) {
     console.error('Error downloading file:', error);
     res.status(500).json({ message: 'Error downloading file', error: error.message });
+  }
+});
+
+/**
+ * @route   POST /api/equipment/:id/notes
+ * @desc    Add a new note to an asset
+ * @access  Public
+ */
+router.post('/:id/notes', async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Note content is required' });
+    }
+
+    const equipment = await Equipment.findOne({ id: req.params.id });
+
+    if (!equipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+
+    // Initialize notesHistory if it doesn't exist
+    if (!equipment.notesHistory) {
+      equipment.notesHistory = [];
+    }
+
+    // Create new note
+    const newNote = {
+      content: content.trim(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: 'Admin', // TODO: Get from authenticated user
+      updatedBy: 'Admin',
+    };
+
+    equipment.notesHistory.push(newNote);
+    equipment.lastModified = new Date();
+
+    await equipment.save();
+
+    // Log activity
+    const activity = new Activity({
+      assetName: equipment.name,
+      assetId: equipment.id,
+      action: 'Note Added',
+      actionType: 'Updated',
+      details: `Added a new note`,
+      user: 'David Deil',
+      icon: '📝',
+      date: 'Just now',
+      timestamp: Date.now(),
+    });
+    await activity.save();
+
+    res.json({ 
+      message: 'Note added successfully', 
+      note: newNote,
+      equipment 
+    });
+  } catch (error) {
+    console.error('Error adding note:', error);
+    res.status(500).json({ message: 'Error adding note', error: error.message });
+  }
+});
+
+/**
+ * @route   PUT /api/equipment/:id/notes/:noteId
+ * @desc    Update an existing note
+ * @access  Public
+ */
+router.put('/:id/notes/:noteId', async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Note content is required' });
+    }
+
+    const equipment = await Equipment.findOne({ id: req.params.id });
+
+    if (!equipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+
+    // Find the note in the notesHistory array
+    const note = equipment.notesHistory.id(req.params.noteId);
+
+    if (!note) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+
+    // Update note
+    note.content = content.trim();
+    note.updatedAt = new Date();
+    note.updatedBy = 'Admin'; // TODO: Get from authenticated user
+    equipment.lastModified = new Date();
+
+    await equipment.save();
+
+    // Log activity
+    const activity = new Activity({
+      assetName: equipment.name,
+      assetId: equipment.id,
+      action: 'Note Updated',
+      actionType: 'Updated',
+      details: `Updated a note`,
+      user: 'David Deil',
+      icon: '✏️',
+      date: 'Just now',
+      timestamp: Date.now(),
+    });
+    await activity.save();
+
+    res.json({ 
+      message: 'Note updated successfully', 
+      note,
+      equipment 
+    });
+  } catch (error) {
+    console.error('Error updating note:', error);
+    res.status(500).json({ message: 'Error updating note', error: error.message });
+  }
+});
+
+/**
+ * @route   DELETE /api/equipment/:id/notes/:noteId
+ * @desc    Delete a note
+ * @access  Public
+ */
+router.delete('/:id/notes/:noteId', async (req, res) => {
+  try {
+    const equipment = await Equipment.findOne({ id: req.params.id });
+
+    if (!equipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+
+    // Find and remove the note
+    const noteIndex = equipment.notesHistory.findIndex(
+      note => note._id.toString() === req.params.noteId
+    );
+
+    if (noteIndex === -1) {
+      return res.status(404).json({ message: 'Note not found' });
+    }
+
+    equipment.notesHistory.splice(noteIndex, 1);
+    equipment.lastModified = new Date();
+
+    await equipment.save();
+
+    // Log activity
+    const activity = new Activity({
+      assetName: equipment.name,
+      assetId: equipment.id,
+      action: 'Note Deleted',
+      actionType: 'Updated',
+      details: `Deleted a note`,
+      user: 'David Deil',
+      icon: '🗑️',
+      date: 'Just now',
+      timestamp: Date.now(),
+    });
+    await activity.save();
+
+    res.json({ 
+      message: 'Note deleted successfully',
+      equipment 
+    });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ message: 'Error deleting note', error: error.message });
   }
 });
 

@@ -52,6 +52,11 @@ const equipmentSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    currency: {
+      type: String,
+      default: 'USD',
+      trim: true,
+    },
     maintenancePeriod: {
       type: String,
       enum: [
@@ -85,8 +90,32 @@ const equipmentSchema = new mongoose.Schema(
       default: '',
     },
     notes: {
-      type: String,
+      type: String, // Legacy field - kept for backwards compatibility
     },
+    notesHistory: [
+      {
+        content: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        createdBy: {
+          type: String,
+          default: 'Admin',
+        },
+        updatedBy: {
+          type: String,
+          default: 'Admin',
+        },
+      },
+    ],
     qrCode: {
       type: String, // Base64 encoded QR code or URL
     },

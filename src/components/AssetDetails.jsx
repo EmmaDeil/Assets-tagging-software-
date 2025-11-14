@@ -64,8 +64,23 @@ import QRCode from "react-qr-code";
 import API_BASE_URL from "../config/api";
 
 const AssetDetails = ({ assetId, onClose, onEdit }) => {
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("success");
+
+  /**
+   * Show toast notification
+   */
+  const showToastNotification = (message, type = "success") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   // Access global equipment context for asset data and activities
-  const { items, activities } = useContext(EquipmentContext);
+  const { items, activities, refreshData } = useContext(EquipmentContext);
 
   // State: Active tab in the tabbed interface
   const [activeTab, setActiveTab] = useState("activity");
@@ -90,6 +105,9 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
   // State: Documents
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [documents, setDocuments] = useState([]);
+
+  // State: Notes management
+  const [noteContent, setNoteContent] = useState("");
 
   // Find the asset by ID from the global items array
   const asset = items.find((item) => item.id === assetId);
@@ -268,17 +286,26 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        setDocuments((prev) => [...prev, data.file]);
+        await response.json(); // Parse response but we don't need it since we're refreshing
+        // Refresh data from server to get updated attachedFiles
+        await refreshData();
+        // The documents will be automatically updated via the useEffect that watches asset.attachedFiles
         // Reset file input
         e.target.value = "";
+        showToastNotification("Document uploaded successfully!", "success");
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to upload document");
+        showToastNotification(
+          error.message || "Failed to upload document",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error uploading document:", error);
-      alert("Failed to upload document. Please try again.");
+      showToastNotification(
+        "Failed to upload document. Please try again.",
+        "error"
+      );
     } finally {
       setUploadingDocument(false);
     }
@@ -301,14 +328,22 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
       );
 
       if (response.ok) {
-        setDocuments((prev) => prev.filter((doc) => doc.id !== fileId));
+        // Refresh data from server to get updated attachedFiles
+        await refreshData();
+        showToastNotification("Document deleted successfully!", "success");
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to delete document");
+        showToastNotification(
+          error.message || "Failed to delete document",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error deleting document:", error);
-      alert("Failed to delete document. Please try again.");
+      showToastNotification(
+        "Failed to delete document. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -321,6 +356,53 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
+
+  /**
+   * Handle adding a new note
+   */
+  const handleAddNote = async () => {
+    if (!noteContent.trim()) {
+      showToastNotification("Please enter note content", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/equipment/${asset.id}/notes`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: noteContent }),
+        }
+      );
+
+      if (response.ok) {
+        await refreshData();
+        setNoteContent("");
+        showToastNotification("Note added successfully!", "success");
+      } else {
+        const error = await response.json();
+        showToastNotification(error.message || "Failed to add note", "error");
+      }
+    } catch (error) {
+      console.error("Error adding note:", error);
+      showToastNotification("Failed to add note. Please try again.", "error");
+    }
+  };
+
+  /**
+   * Format date for note display
+   */
+  const formatNoteDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   /**
@@ -1254,22 +1336,86 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                 {/* Notes Tab */}
                 {activeTab === "notes" && (
                   <div className="p-6">
-                    {asset.notes ? (
-                      <div className="prose dark:prose-invert max-w-none">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                          Asset Notes
-                        </h3>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                        Notes History
+                      </h3>
+
+                      {/* Add Note Input - Always visible */}
+                      <div className="flex gap-2 mb-6">
+                        <textarea
+                          value={noteContent}
+                          onChange={(e) => setNoteContent(e.target.value)}
+                          placeholder="Write a note..."
+                          rows="2"
+                          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <button
+                          onClick={handleAddNote}
+                          disabled={!noteContent.trim()}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 self-end"
+                          title="Send note"
+                        >
+                          <span className="material-symbols-outlined text-xl">
+                            send
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Notes List */}
+                    {asset.notesHistory && asset.notesHistory.length > 0 ? (
+                      <div className="space-y-4">
+                        {asset.notesHistory
+                          .slice()
+                          .reverse()
+                          .map((note) => (
+                            <div
+                              key={note._id}
+                              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                            >
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                <div>
+                                  <span className="font-medium">
+                                    {note.createdBy}
+                                  </span>{" "}
+                                  • {formatNoteDate(note.createdAt)}
+                                </div>
+                                {note.updatedAt &&
+                                  new Date(note.updatedAt).getTime() !==
+                                    new Date(note.createdAt).getTime() && (
+                                    <div className="text-orange-600 dark:text-orange-400">
+                                      <span className="font-medium">
+                                        Updated:
+                                      </span>{" "}
+                                      {formatNoteDate(note.updatedAt)} by{" "}
+                                      {note.updatedBy}
+                                    </div>
+                                  )}
+                              </div>
+                              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                {note.content}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : asset.notes ? (
+                      // Legacy single note display (for backwards compatibility)
+                      <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <span className="font-medium">Legacy Note</span>
+                        </div>
                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                           {asset.notes}
                         </p>
                       </div>
                     ) : (
-                      <div className="text-center py-12">
-                        <span className="material-symbols-outlined text-gray-400 text-5xl">
+                      <div className="text-center py-8">
+                        <span className="material-symbols-outlined text-gray-400 text-4xl">
                           note
                         </span>
-                        <p className="mt-4 text-gray-600 dark:text-gray-400">
-                          No notes available for this asset
+                        <p className="mt-2 text-gray-600 dark:text-gray-400">
+                          No notes yet. Add your first note above.
                         </p>
                       </div>
                     )}
@@ -1280,6 +1426,30 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
           </div>
         </div>
       </main>
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
+          <div
+            className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-lg ${
+              toastType === "success"
+                ? "bg-green-500 text-white"
+                : toastType === "error"
+                ? "bg-red-500 text-white"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            <span className="material-symbols-outlined">
+              {toastType === "success"
+                ? "check_circle"
+                : toastType === "error"
+                ? "error"
+                : "info"}
+            </span>
+            <p className="font-medium">{toastMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

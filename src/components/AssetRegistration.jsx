@@ -99,6 +99,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     maintenancePeriod: "",
     assignedTo: "",
     department: "",
+    cost: "",
+    currency: "USD",
   });
 
   // Success modal state: Controls post-registration success dialog
@@ -283,7 +285,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
         maintenancePeriod: formData.maintenancePeriod || "",
         purchaseDate: formData.acquisitionDate,
         acquisitionDate: formData.acquisitionDate,
-        cost: 0,
+        cost: formData.cost ? parseFloat(formData.cost) : 0,
+        currency: formData.currency || "USD",
         assignedTo: formData.assignedTo || "",
         department: formData.department || "",
       };
@@ -368,6 +371,8 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       maintenancePeriod: "",
       assignedTo: "",
       department: "",
+      cost: "",
+      currency: "USD",
     });
 
     // Clear uploaded files
@@ -814,6 +819,46 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal leading-normal transition-all"
                   placeholder="e.g., C02J1234K123"
                 />
+              </label>
+            </div>
+
+            {/* Cost with Currency */}
+            <div className="md:col-span-1">
+              <label className="flex flex-col w-full">
+                <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
+                  Cost
+                </p>
+                <div className="flex gap-2">
+                  <select
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleChange}
+                    className="form-input w-24 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 p-2 text-base font-normal transition-all"
+                  >
+                    <option value="USD">USD $</option>
+                    <option value="EUR">EUR €</option>
+                    <option value="GBP">GBP £</option>
+                    <option value="JPY">JPY ¥</option>
+                    <option value="CNY">CNY ¥</option>
+                    <option value="INR">INR ₹</option>
+                    <option value="AUD">AUD $</option>
+                    <option value="CAD">CAD $</option>
+                    <option value="NGN">NGN ₦</option>
+                    <option value="ZAR">ZAR R</option>
+                    <option value="KES">KES KSh</option>
+                    <option value="GHS">GHS ₵</option>
+                  </select>
+                  <input
+                    type="number"
+                    name="cost"
+                    value={formData.cost}
+                    onChange={handleChange}
+                    step="0.01"
+                    min="0"
+                    className="form-input flex-1 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal transition-all"
+                    placeholder="e.g., 1299.99"
+                  />
+                </div>
               </label>
             </div>
 
