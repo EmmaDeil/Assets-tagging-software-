@@ -295,6 +295,46 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
 
       console.log("Asset successfully added to database");
 
+      // Upload attached files/images to the asset if any exist
+      if (uploadedFiles.length > 0) {
+        console.log(`Uploading ${uploadedFiles.length} file(s) to asset...`);
+
+        for (const file of uploadedFiles) {
+          try {
+            // Convert base64 data URL to Blob
+            const response = await fetch(file.url);
+            const blob = await response.blob();
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append("document", blob, file.name);
+
+            // Upload file to backend
+            const uploadResponse = await fetch(
+              `${API_BASE_URL}/equipment/${newAsset.id}/upload`,
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Failed to upload ${file.name}`);
+            }
+
+            console.log(`Successfully uploaded: ${file.name}`);
+          } catch (uploadError) {
+            console.error(`Error uploading ${file.name}:`, uploadError);
+            showToastNotification(
+              `Warning: Failed to upload ${file.name}`,
+              "warning"
+            );
+          }
+        }
+
+        console.log("All files uploaded successfully");
+      }
+
       // Store registered asset and show success modal
       setRegisteredAsset(newAsset);
       setShowSuccessModal(true);
@@ -329,6 +369,9 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       assignedTo: "",
       department: "",
     });
+
+    // Clear uploaded files
+    setUploadedFiles([]);
 
     // Notify parent component
     if (onSuccess) {
