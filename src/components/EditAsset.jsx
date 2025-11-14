@@ -103,6 +103,11 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
     status: asset?.status || "In Use",
     assignedTo: asset?.assignedTo || "",
     department: asset?.department || "",
+    model: asset?.model || "",
+    serial: asset?.serial || "",
+    cost: asset?.cost || "",
+    currency: asset?.currency || "USD",
+    notes: asset?.notes || "",
   });
 
   // State: Users list for assignment dropdown

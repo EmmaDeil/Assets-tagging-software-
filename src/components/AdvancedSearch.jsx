@@ -134,7 +134,10 @@ export default function AdvancedSearch({
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
+      // Only restore overflow if it was set to hidden
+      if (isOpen) {
+        document.body.style.overflow = "unset";
+      }
     };
   }, [isOpen, onClose]);
 
