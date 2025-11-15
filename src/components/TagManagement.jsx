@@ -78,13 +78,25 @@ const TagManagement = () => {
 
   // Filter tags
   const filteredTags = tags.filter((tag) => {
+    // Search filter - check if search query matches name or description
     const matchesSearch =
-      tag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tag.description.toLowerCase().includes(searchQuery.toLowerCase());
+      searchQuery.trim() === "" ||
+      tag.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tag.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Type filter - check if category matches selected type
     const matchesType =
       filterType === "All Tag Types" || tag.category === filterType;
-    const matchesStatus =
-      filterStatus === "All Statuses" || tag.status === filterStatus;
+
+    // Status filter - check usage count (Active if used, Archived if not used)
+    let matchesStatus = true;
+    if (filterStatus === "Active") {
+      matchesStatus = (tag.usageCount || 0) > 0;
+    } else if (filterStatus === "Archived") {
+      matchesStatus = (tag.usageCount || 0) === 0;
+    }
+    // If "All Statuses", matchesStatus remains true
+
     return matchesSearch && matchesType && matchesStatus;
   });
 
@@ -93,6 +105,19 @@ const TagManagement = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentTags = filteredTags.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterType, filterStatus]);
+
+  // Reset all filters
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterType("All Tag Types");
+    setFilterStatus("All Statuses");
+    setCurrentPage(1);
+  };
 
   // Handle form input
   const handleChange = (e) => {
@@ -283,6 +308,20 @@ const TagManagement = () => {
                 <option>Active</option>
                 <option>Archived</option>
               </select>
+              {(searchQuery.trim() !== "" ||
+                filterType !== "All Tag Types" ||
+                filterStatus !== "All Statuses") && (
+                <button
+                  onClick={resetFilters}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-1"
+                  title="Clear all filters"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    filter_alt_off
+                  </span>
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 
