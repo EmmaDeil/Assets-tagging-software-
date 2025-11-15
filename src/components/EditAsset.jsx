@@ -127,6 +127,9 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success"); // success or error
 
+  // State: Cancel confirmation modal
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   /**
    * Show toast notification
    * @param {string} message - Message to display
@@ -293,7 +296,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
 
     // Validate required fields
     if (!formData.name || !formData.id) {
-      alert("Asset Name and Tag ID are required.");
+      showToastNotification("Asset Name and Tag ID are required.", "error");
       return;
     }
 
@@ -302,7 +305,10 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
       (item) => item.id === formData.id && item.id !== assetId
     );
     if (duplicateId) {
-      alert("Tag ID already exists. Please use a unique Tag ID.");
+      showToastNotification(
+        "Tag ID already exists. Please use a unique Tag ID.",
+        "error"
+      );
       return;
     }
 
@@ -360,12 +366,19 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
    */
   const handleCancel = () => {
     if (hasChanges) {
-      const confirmed = window.confirm(
-        "You have unsaved changes. Are you sure you want to cancel?"
-      );
-      if (!confirmed) return;
+      setShowCancelModal(true);
+    } else {
+      if (onCancel) {
+        onCancel();
+      }
     }
+  };
 
+  /**
+   * Confirm cancel action
+   */
+  const confirmCancel = () => {
+    setShowCancelModal(false);
     if (onCancel) {
       onCancel();
     }
@@ -764,6 +777,50 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                  <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-2xl">
+                    warning
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Unsaved Changes
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    You have unsaved changes
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                Are you sure you want to cancel? All your changes will be lost.
+              </p>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium transition-colors"
+              >
+                Keep Editing
+              </button>
+              <button
+                onClick={confirmCancel}
+                className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

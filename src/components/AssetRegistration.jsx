@@ -1118,28 +1118,28 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       {/* Success Modal */}
       {showSuccessModal && registeredAsset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 sm:p-8 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-                <span className="material-symbols-outlined text-4xl text-green-600 dark:text-green-400">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md transform transition-all my-auto">
+            <div className="p-4 sm:p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                <span className="material-symbols-outlined text-3xl text-green-600 dark:text-green-400">
                   check_circle
                 </span>
               </div>
-              <h3 className="mt-5 text-2xl font-bold text-gray-900 dark:text-white">
+              <h3 className="mt-3 text-xl font-bold text-gray-900 dark:text-white">
                 Asset Registered Successfully!
               </h3>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                The QR code has been generated for your new asset.
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                QR code generated for your new asset.
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900 p-6 sm:p-8 border-y border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col items-center gap-4">
-                <div id="success-qr-code" className="bg-white p-4 rounded-lg">
+            <div className="bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 border-y border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col items-center gap-3">
+                <div id="success-qr-code" className="bg-white p-3 rounded-lg">
                   {registeredAsset?.id ? (
-                    <QRCode value={registeredAsset.id} size={200} />
+                    <QRCode value={registeredAsset.id} size={180} />
                   ) : (
-                    <div className="w-[200px] h-[200px] flex items-center justify-center bg-gray-100 text-gray-400">
+                    <div className="w-[180px] h-[180px] flex items-center justify-center bg-gray-100 text-gray-400">
                       No QR Code
                     </div>
                   )}
@@ -1148,30 +1148,36 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider">
                     Asset Name
                   </p>
-                  <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  <p className="text-base font-semibold text-gray-800 dark:text-gray-100">
                     {registeredAsset?.name || "N/A"}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1.5">
                     Tag ID
                   </p>
-                  <p className="font-mono text-gray-600 dark:text-gray-300">
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-300">
                     {registeredAsset?.id || "N/A"}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1.5">
+                    Location
+                  </p>
+                  <p className="font-mono text-sm text-gray-600 dark:text-gray-300">
+                    {registeredAsset?.location || "N/A"}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row gap-2 p-4 sm:p-5">
               <button
                 onClick={handlePrint}
-                className="w-full flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
               >
                 <span className="material-symbols-outlined text-lg">print</span>
                 Print
               </button>
               <button
                 onClick={handleDownload}
-                className="w-full flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
               >
                 <span className="material-symbols-outlined text-lg">
                   download
@@ -1180,10 +1186,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
               </button>
             </div>
 
-            <div className="px-6 sm:px-8 pb-6">
+            <div className="px-4 sm:px-5 pb-4">
               <button
                 onClick={handleCloseModal}
-                className="w-full flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-600"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 Close
               </button>

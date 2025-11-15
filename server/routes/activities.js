@@ -10,12 +10,13 @@ const Activity = require('../models/Activity');
 
 /**
  * @route   GET /api/activities
- * @desc    Get all activities (limited to last 50)
+ * @desc    Get all activities (limited to last 20)
  * @access  Public
  */
 router.get('/', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
+    const requestedLimit = parseInt(req.query.limit) || 6;
+    const limit = Math.min(requestedLimit, 6); // Maximum limit of 6
     const activities = await Activity.find()
       .sort({ timestamp: -1 })
       .limit(limit);
@@ -29,13 +30,14 @@ router.get('/', async (req, res) => {
 
 /**
  * @route   GET /api/activities/asset/:assetId
- * @desc    Get activities for a specific asset
+ * @desc    Get activities for a specific asset (limited to last 6)
  * @access  Public
  */
 router.get('/asset/:assetId', async (req, res) => {
   try {
     const activities = await Activity.find({ assetId: req.params.assetId })
-      .sort({ timestamp: -1 });
+      .sort({ timestamp: -1 })
+      .limit(6);
     
     res.json(activities);
   } catch (error) {

@@ -47,9 +47,33 @@ const Reports = () => {
     ...new Set(items.map((item) => item.category).filter(Boolean)),
   ];
 
+  // Report type configurations with descriptions
+  const reportTypes = {
+    "Asset Status": {
+      description:
+        "Overview of all assets grouped by their current status (In Use, Available, Under Maintenance, Retired, Lost)",
+      icon: "inventory_2",
+    },
+    Utilization: {
+      description:
+        "Analysis of asset usage patterns, assignment rates, and utilization efficiency across departments",
+      icon: "assessment",
+    },
+    "Maintenance History": {
+      description:
+        "Track maintenance schedules, service records, and assets currently under maintenance or requiring attention",
+      icon: "build",
+    },
+    "Full Inventory": {
+      description:
+        "Complete asset inventory list with all details including ID, category, location, acquisition date, and cost",
+      icon: "list_alt",
+    },
+  };
+
   // Filter states
   const [reportType, setReportType] = useState("Asset Status");
-  const [dateRange, setDateRange] = useState("Last 30 Days");
+  const [dateRange, setDateRange] = useState("All Time");
   const [assetCategory, setAssetCategory] = useState("All Categories");
   const [customDateFrom, setCustomDateFrom] = useState("");
   const [customDateTo, setCustomDateTo] = useState("");
@@ -92,6 +116,8 @@ const Reports = () => {
 
       const compareDate = new Date();
       switch (dateRange) {
+        case "All Time":
+          return itemDate.getFullYear() === new Date().getFullYear();
         case "Last 30 Days":
           compareDate.setDate(compareDate.getDate() - 30);
           return itemDate >= compareDate;
@@ -99,8 +125,6 @@ const Reports = () => {
           compareDate.setDate(compareDate.getDate() - 90);
           return itemDate >= compareDate;
         case "This Year":
-          return itemDate.getFullYear() === new Date().getFullYear();
-        case "All Time":
         default:
           return true;
       }
@@ -716,7 +740,7 @@ const Reports = () => {
               htmlFor="reportType"
             >
               <span className="material-symbols-outlined text-base">
-                description
+                {reportTypes[reportType]?.icon || "description"}
               </span>
               Report Type
             </label>
@@ -731,6 +755,15 @@ const Reports = () => {
               <option>Maintenance History</option>
               <option>Full Inventory</option>
             </select>
+            {/* Report Type Description */}
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
+                <span className="material-symbols-outlined text-sm align-middle mr-1">
+                  info
+                </span>
+                {reportTypes[reportType]?.description}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -749,10 +782,10 @@ const Reports = () => {
               value={dateRange}
               onChange={(e) => handleDateRangeChange(e.target.value)}
             >
+              <option>All Time</option>
               <option>Last 30 Days</option>
               <option>Last 90 Days</option>
               <option>This Year</option>
-              <option>All Time</option>
               <option>Custom Range</option>
             </select>
           </div>
@@ -912,9 +945,22 @@ const Reports = () => {
       {/* Report Details Table */}
       <div className="flex flex-col gap-4 rounded-lg border border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800">
         <div className="flex flex-wrap gap-4 justify-between items-center">
-          <h2 className="text-gray-900 dark:text-white text-lg font-bold leading-normal">
-            Generated Report Details
-          </h2>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-xl">
+                {reportTypes[reportType]?.icon || "description"}
+              </span>
+            </div>
+            <div>
+              <h2 className="text-gray-900 dark:text-white text-lg font-bold leading-normal">
+                {reportType} Report
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {reportData.length} {reportData.length === 1 ? "item" : "items"}{" "}
+                found
+              </p>
+            </div>
+          </div>
           <div className="flex gap-3">
             <button
               onClick={handleExportPDF}
@@ -951,12 +997,50 @@ const Reports = () => {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs">
               <tr>
-                <th className="py-3 pr-4 font-medium">Asset ID</th>
-                <th className="py-3 px-4 font-medium">Asset Name</th>
-                <th className="py-3 px-4 font-medium">Category</th>
-                <th className="py-3 px-4 font-medium">Status</th>
-                <th className="py-3 px-4 font-medium">Last Update</th>
-                <th className="py-3 pl-4 font-medium">Assigned To</th>
+                {/* Dynamic columns based on report type */}
+                {reportType === "Asset Status" && (
+                  <>
+                    <th className="py-3 pr-4 font-medium">Asset ID</th>
+                    <th className="py-3 px-4 font-medium">Asset Name</th>
+                    <th className="py-3 px-4 font-medium">Category</th>
+                    <th className="py-3 px-4 font-medium">Status</th>
+                    <th className="py-3 px-4 font-medium">Location</th>
+                    <th className="py-3 pl-4 font-medium">Last Update</th>
+                  </>
+                )}
+                {reportType === "Utilization" && (
+                  <>
+                    <th className="py-3 pr-4 font-medium">Asset ID</th>
+                    <th className="py-3 px-4 font-medium">Asset Name</th>
+                    <th className="py-3 px-4 font-medium">Status</th>
+                    <th className="py-3 px-4 font-medium">Assigned To</th>
+                    <th className="py-3 px-4 font-medium">Department</th>
+                    <th className="py-3 pl-4 font-medium">Days In Use</th>
+                  </>
+                )}
+                {reportType === "Maintenance History" && (
+                  <>
+                    <th className="py-3 pr-4 font-medium">Asset ID</th>
+                    <th className="py-3 px-4 font-medium">Asset Name</th>
+                    <th className="py-3 px-4 font-medium">Category</th>
+                    <th className="py-3 px-4 font-medium">Status</th>
+                    <th className="py-3 px-4 font-medium">
+                      Maintenance Period
+                    </th>
+                    <th className="py-3 pl-4 font-medium">Last Service</th>
+                  </>
+                )}
+                {reportType === "Full Inventory" && (
+                  <>
+                    <th className="py-3 pr-4 font-medium">Asset ID</th>
+                    <th className="py-3 px-4 font-medium">Asset Name</th>
+                    <th className="py-3 px-4 font-medium">Category</th>
+                    <th className="py-3 px-4 font-medium">Location</th>
+                    <th className="py-3 px-4 font-medium">Cost</th>
+                    <th className="py-3 px-4 font-medium">Acquisition Date</th>
+                    <th className="py-3 pl-4 font-medium">Status</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -969,37 +1053,147 @@ const Reports = () => {
                       : ""
                   }`}
                 >
-                  <td className="py-4 pr-4 font-mono text-xs text-gray-700 dark:text-gray-300">
-                    {item.id || ""}
-                  </td>
-                  <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
-                    {item.name || ""}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
-                    {item.category || ""}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
-                        item.status
-                      )}`}
-                    >
-                      {item.status || ""}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
-                    {item.lastUpdate ||
-                      (item.acquisitionDate
-                        ? new Date(item.acquisitionDate).toLocaleDateString()
-                        : item.purchaseDate
-                        ? new Date(item.purchaseDate).toLocaleDateString()
-                        : item.createdAt
-                        ? new Date(item.createdAt).toLocaleDateString()
-                        : "")}
-                  </td>
-                  <td className="py-4 pl-4 text-gray-700 dark:text-gray-300">
-                    {item.assignedTo || ""}
-                  </td>
+                  {/* Dynamic cells based on report type */}
+                  {reportType === "Asset Status" && (
+                    <>
+                      <td className="py-4 pr-4 font-mono text-xs text-gray-700 dark:text-gray-300">
+                        {item.id || ""}
+                      </td>
+                      <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                        {item.name || ""}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.category || ""}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
+                            item.status
+                          )}`}
+                        >
+                          {item.status || ""}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.location || "N/A"}
+                      </td>
+                      <td className="py-4 pl-4 text-gray-700 dark:text-gray-300">
+                        {item.lastUpdate ||
+                          (item.acquisitionDate
+                            ? new Date(
+                                item.acquisitionDate
+                              ).toLocaleDateString()
+                            : item.purchaseDate
+                            ? new Date(item.purchaseDate).toLocaleDateString()
+                            : item.createdAt
+                            ? new Date(item.createdAt).toLocaleDateString()
+                            : "")}
+                      </td>
+                    </>
+                  )}
+                  {reportType === "Utilization" && (
+                    <>
+                      <td className="py-4 pr-4 font-mono text-xs text-gray-700 dark:text-gray-300">
+                        {item.id || ""}
+                      </td>
+                      <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                        {item.name || ""}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
+                            item.status
+                          )}`}
+                        >
+                          {item.status || ""}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.assignedTo || "Unassigned"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.department || "N/A"}
+                      </td>
+                      <td className="py-4 pl-4 text-gray-700 dark:text-gray-300">
+                        {item.acquisitionDate
+                          ? Math.floor(
+                              (new Date() - new Date(item.acquisitionDate)) /
+                                (1000 * 60 * 60 * 24)
+                            )
+                          : "N/A"}
+                      </td>
+                    </>
+                  )}
+                  {reportType === "Maintenance History" && (
+                    <>
+                      <td className="py-4 pr-4 font-mono text-xs text-gray-700 dark:text-gray-300">
+                        {item.id || ""}
+                      </td>
+                      <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                        {item.name || ""}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.category || ""}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
+                            item.status
+                          )}`}
+                        >
+                          {item.status || ""}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.maintenancePeriod || "Not Set"}
+                      </td>
+                      <td className="py-4 pl-4 text-gray-700 dark:text-gray-300">
+                        {item.lastService ||
+                          (item.acquisitionDate
+                            ? new Date(
+                                item.acquisitionDate
+                              ).toLocaleDateString()
+                            : "N/A")}
+                      </td>
+                    </>
+                  )}
+                  {reportType === "Full Inventory" && (
+                    <>
+                      <td className="py-4 pr-4 font-mono text-xs text-gray-700 dark:text-gray-300">
+                        {item.id || ""}
+                      </td>
+                      <td className="py-4 px-4 font-semibold text-gray-900 dark:text-white">
+                        {item.name || ""}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.category || ""}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.location || "N/A"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold">
+                        {item.cost
+                          ? `${item.currency || "USD"} ${parseFloat(
+                              item.cost
+                            ).toLocaleString()}`
+                          : "N/A"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {item.acquisitionDate
+                          ? new Date(item.acquisitionDate).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="py-4 pl-4">
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
+                            item.status
+                          )}`}
+                        >
+                          {item.status || ""}
+                        </span>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

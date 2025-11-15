@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
   try {
     const notifications = await Notification.find()
       .sort({ createdAt: -1 })
-      .limit(100); // Limit to last 100 notifications
+      .limit(10); // Limit to last 10 notifications
     res.json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);

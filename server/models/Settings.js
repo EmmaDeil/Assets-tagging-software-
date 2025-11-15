@@ -11,7 +11,7 @@ const settingsSchema = new mongoose.Schema({
   // General Settings
   appName: {
     type: String,
-    default: 'AssetManager',
+    default: 'Q tag Manager',
     required: true
   },
   timezone: {
