@@ -22,10 +22,11 @@
 
 import React, { useState, useEffect } from "react";
 import API_BASE_URL from "../config/api";
+import PermissionsManagement from "./PermissionsManagement";
 
 export default function Settings() {
   // State for settings form
-  const [appName, setAppName] = useState("AssetManager");
+  const [appName, setAppName] = useState("Q Tag Manager");
   const [timezone, setTimezone] = useState("UTC-5");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [apiKey, setApiKey] = useState("Loading...");
@@ -46,13 +47,9 @@ export default function Settings() {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
 
   // Branding state
-  const [companyName, setCompanyName] = useState("AssetManager");
+  const [companyName, setCompanyName] = useState("Q Tag Manager");
   const [primaryColor, setPrimaryColor] = useState("#3B82F6");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
-
-  // Permissions state
-  const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
   // System stats state
   const [stats, setStats] = useState(null);
@@ -74,9 +71,7 @@ export default function Settings() {
    * Load users when permissions section is active
    */
   useEffect(() => {
-    if (activeSection === "permissions") {
-      loadUsers();
-    } else if (activeSection === "general") {
+    if (activeSection === "general") {
       loadSystemStats();
     }
   }, [activeSection]);
@@ -119,24 +114,6 @@ export default function Settings() {
     } catch (error) {
       console.error("Error loading settings:", error);
       showToast("Failed to load settings. Please refresh the page.", "error");
-    }
-  };
-
-  /**
-   * Load users for permissions management
-   */
-  const loadUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const response = await fetch(`${API_BASE_URL}/settings/users`);
-      if (!response.ok) throw new Error("Failed to fetch users");
-
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error loading users:", error);
-    } finally {
-      setLoadingUsers(false);
     }
   };
 
@@ -302,36 +279,6 @@ export default function Settings() {
       showToast("Failed to delete assets. Please try again.", "error");
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  /**
-   * Handle updating user role
-   */
-  const handleUpdateUserRole = async (userId, newRole) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/settings/users/${userId}/role`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to update user role");
-
-      const updatedUser = await response.json();
-
-      // Update local state
-      setUsers(users.map((u) => (u._id === userId ? updatedUser : u)));
-
-      showToast(`User role updated to ${newRole} successfully!`, "success");
-    } catch (error) {
-      console.error("Error updating user role:", error);
-      showToast("Failed to update user role. Please try again.", "error");
     }
   };
 
@@ -705,113 +652,8 @@ export default function Settings() {
             </>
           )}
 
-          {/* Permissions Section (Placeholder) */}
-          {activeSection === "permissions" && (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Permissions & User Management
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Manage user roles and access control settings.
-                </p>
-              </div>
-              <div className="p-6">
-                {loadingUsers ? (
-                  <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p className="text-gray-600 dark:text-gray-400 mt-4">
-                      Loading users...
-                    </p>
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="text-center py-12">
-                    <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4">
-                      group
-                    </span>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      No Users Found
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No users are registered in the system yet.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead className="border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 uppercase tracking-wider text-xs">
-                        <tr>
-                          <th className="py-3 pr-4 font-medium">Name</th>
-                          <th className="py-3 pr-4 font-medium">Email</th>
-                          <th className="py-3 pr-4 font-medium">Role</th>
-                          <th className="py-3 pr-4 font-medium">Created</th>
-                          <th className="py-3 font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user) => (
-                          <tr
-                            key={user._id}
-                            className="border-b border-gray-100 dark:border-gray-700"
-                          >
-                            <td className="py-3 pr-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                  <span className="text-blue-600 dark:text-blue-300 font-semibold text-sm">
-                                    {user.name.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {user.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-3 pr-4 text-gray-600 dark:text-gray-400">
-                              {user.email}
-                            </td>
-                            <td className="py-3 pr-4">
-                              <select
-                                value={user.role}
-                                onChange={(e) =>
-                                  handleUpdateUserRole(user._id, e.target.value)
-                                }
-                                className="rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-2 py-1 text-xs"
-                              >
-                                <option value="Viewer">Viewer</option>
-                                <option value="User">User</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Administrator">
-                                  Administrator
-                                </option>
-                              </select>
-                            </td>
-                            <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 text-xs">
-                              {new Date(user.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="py-3">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  user.role === "Administrator"
-                                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                    : user.role === "Manager"
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                    : user.role === "User"
-                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                    : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400"
-                                }`}
-                              >
-                                {user.role}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Permissions Section */}
+          {activeSection === "permissions" && <PermissionsManagement />}
 
           {/* Integrations Section (Placeholder) */}
           {activeSection === "integrations" && (

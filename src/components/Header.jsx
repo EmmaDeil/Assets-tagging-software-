@@ -536,6 +536,18 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
+                    handleNavClick("Profile");
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    person
+                  </span>
+                  My Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
                     handleNavClick("Settings");
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
@@ -543,7 +555,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
                   <span className="material-symbols-outlined text-base">
                     settings
                   </span>
-                  Profile Settings
+                  App Settings
                 </button>
                 <button
                   onClick={() => {

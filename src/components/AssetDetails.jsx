@@ -702,7 +702,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                           asset.acquisitionDate ||
                           asset.createdAt
                       )}{" "}
-                      - $
+                      - {asset.currency || "NGN"}{" "}
                       {typeof asset.cost === "number"
                         ? asset.cost.toFixed(2)
                         : "0.00"}

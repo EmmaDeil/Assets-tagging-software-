@@ -49,6 +49,7 @@ import TagManagement from "./components/TagManagement";
 import UserManagement from "./components/UserManagement";
 import Reports from "./components/Reports";
 import Settings from "./components/Settings";
+import UserProfile from "./components/UserProfile";
 
 /**
  * AppContent component
@@ -255,6 +256,9 @@ function AppContent() {
 
           {/* Reports Page */}
           {currentPage === "Reports" && <Reports />}
+
+          {/* User Profile Page */}
+          {currentPage === "Profile" && <UserProfile />}
 
           {/* Settings Page */}
           {currentPage === "Settings" && <Settings />}
