@@ -21,6 +21,9 @@ const notificationRoutes = require('./routes/notifications');
 const settingsRoutes = require('./routes/settings');
 const cronRoutes = require('./routes/cron');
 
+// Import middleware
+const { checkMaintenanceMode } = require('./middleware/maintenanceMode');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -64,6 +67,9 @@ if (NODE_ENV === 'development') {
     next();
   });
 }
+
+// Apply maintenance mode middleware to all API routes except settings GET
+app.use('/api', checkMaintenanceMode);
 
 // API Routes
 app.use('/api/equipment', equipmentRoutes);

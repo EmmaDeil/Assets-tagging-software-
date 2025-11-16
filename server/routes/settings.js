@@ -10,6 +10,7 @@ const router = express.Router();
 const Settings = require('../models/Settings');
 const Equipment = require('../models/Equipment');
 const Activity = require('../models/Activity');
+const { clearMaintenanceModeCache } = require('../middleware/maintenanceMode');
 
 /**
  * GET /api/settings
@@ -58,8 +59,18 @@ router.put('/', async (req, res) => {
     // Update existing settings
     const allowedUpdates = [
       'appName', 
-      'timezone', 
       'maintenanceMode',
+      'defaultCurrency',
+      'dateFormat',
+      'autoBackup',
+      'maintenanceNotificationDays',
+      'sessionTimeout',
+      'recordsPerPage',
+      'emailNotifications',
+      'assetIdPrefix',
+      'language',
+      'maintenanceReminderFrequency',
+      'dataRetentionDays',
       'logoUrl',
       'primaryColor',
       'secondaryColor',
@@ -79,6 +90,10 @@ router.put('/', async (req, res) => {
     });
     
     await settings.save();
+    
+    // Clear maintenance mode cache when settings are updated
+    clearMaintenanceModeCache();
+    
     res.json(settings);
   } catch (error) {
     console.error('Error updating settings:', error);

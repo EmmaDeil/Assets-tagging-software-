@@ -28,7 +28,8 @@ export const CURRENCY_SYMBOLS = {
   KRW: '₩',
   HKD: 'HK$',
   SEK: 'kr',
-  NOK: 'kr'
+  NOK: 'kr',
+  NGN: '₦'
 };
 
 // Currency names map
@@ -52,7 +53,8 @@ export const CURRENCY_NAMES = {
   KRW: 'South Korean Won',
   HKD: 'Hong Kong Dollar',
   SEK: 'Swedish Krona',
-  NOK: 'Norwegian Krone'
+  NOK: 'Norwegian Krone',
+  NGN: 'Nigerian Naira'
 };
 
 let cachedCurrency = null;

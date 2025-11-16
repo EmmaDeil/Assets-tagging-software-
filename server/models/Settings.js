@@ -11,12 +11,7 @@ const settingsSchema = new mongoose.Schema({
   // General Settings
   appName: {
     type: String,
-    default: 'Q tag Manager',
-    required: true
-  },
-  timezone: {
-    type: String,
-    default: 'UTC-5',
+    default: 'QR Tag Manager',
     required: true
   },
   maintenanceMode: {
@@ -27,6 +22,57 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: 'USD',
     enum: ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'INR', 'AUD', 'CAD', 'CHF', 'SGD', 'NZD', 'ZAR', 'BRL', 'MXN', 'AED', 'SAR', 'KRW', 'HKD', 'SEK', 'NOK', 'NGN']
+  },
+  dateFormat: {
+    type: String,
+    default: 'MM/DD/YYYY',
+    enum: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'DD.MM.YYYY']
+  },
+  autoBackup: {
+    type: Boolean,
+    default: true
+  },
+  maintenanceNotificationDays: {
+    type: Number,
+    default: 7,
+    min: 1,
+    max: 90
+  },
+  sessionTimeout: {
+    type: Number,
+    default: 30,
+    min: 5,
+    max: 21360 // 24 hours max
+  },
+  recordsPerPage: {
+    type: Number,
+    default: 25,
+    min: 10,
+    max: 500
+  },
+  emailNotifications: {
+    type: Boolean,
+    default: false
+  },
+  assetIdPrefix: {
+    type: String,
+    default: 'AST-',
+    maxlength: 10
+  },
+  language: {
+    type: String,
+    default: 'en',
+    enum: ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ar', 'hi']
+  },
+  maintenanceReminderFrequency: {
+    type: String,
+    default: 'monthly',
+    enum: ['weekly', 'biweekly', 'monthly', 'quarterly', 'semiannual', 'annual']
+  },
+  dataRetentionDays: {
+    type: Number,
+    default: 90,
+    enum: [30, 60, 90, 180, 365, -1] // -1 means keep forever
   },
   
   // API Settings

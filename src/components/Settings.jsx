@@ -27,10 +27,23 @@ import PermissionsManagement from "./PermissionsManagement";
 export default function Settings() {
   // State for settings form
   const [appName, setAppName] = useState("QR Tag Manager");
-  const [timezone, setTimezone] = useState("UTC-5");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [apiKey, setApiKey] = useState("Loading...");
-  const [defaultCurrency, setDefaultCurrency] = useState("USD");
+  const [defaultCurrency, setDefaultCurrency] = useState("NGN");
+
+  // New settings
+  const [dateFormat, setDateFormat] = useState("MM/DD/YYYY");
+  const [autoBackup, setAutoBackup] = useState(true);
+  const [maintenanceNotificationDays, setMaintenanceNotificationDays] =
+    useState(7);
+  const [sessionTimeout, setSessionTimeout] = useState(30);
+  const [recordsPerPage, setRecordsPerPage] = useState(25);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [assetIdPrefix, setAssetIdPrefix] = useState("AST-");
+  const [language, setLanguage] = useState("en");
+  const [maintenanceReminderFrequency, setMaintenanceReminderFrequency] =
+    useState("monthly");
+  const [dataRetentionDays, setDataRetentionDays] = useState(90);
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
@@ -87,13 +100,24 @@ export default function Settings() {
 
       const data = await response.json();
       setAppName(data.appName);
-      setTimezone(data.timezone);
       setMaintenanceMode(data.maintenanceMode);
       setApiKey(data.apiKey);
       setCompanyName(data.companyName || "QR Tag Manager");
       setPrimaryColor(data.primaryColor || "#3B82F6");
       setSecondaryColor(data.secondaryColor || "#10B981");
-      setDefaultCurrency(data.defaultCurrency || "USD");
+      setDefaultCurrency(data.defaultCurrency || "NGN");
+      setDateFormat(data.dateFormat || "MM/DD/YYYY");
+      setAutoBackup(data.autoBackup !== undefined ? data.autoBackup : true);
+      setMaintenanceNotificationDays(data.maintenanceNotificationDays || 7);
+      setSessionTimeout(data.sessionTimeout || 30);
+      setRecordsPerPage(data.recordsPerPage || 25);
+      setEmailNotifications(data.emailNotifications || false);
+      setAssetIdPrefix(data.assetIdPrefix || "AST-");
+      setLanguage(data.language || "en");
+      setMaintenanceReminderFrequency(
+        data.maintenanceReminderFrequency || "monthly"
+      );
+      setDataRetentionDays(data.dataRetentionDays || 90);
 
       // Format last API use
       if (data.lastApiUse) {
@@ -150,9 +174,18 @@ export default function Settings() {
         },
         body: JSON.stringify({
           appName,
-          timezone,
           maintenanceMode,
           defaultCurrency,
+          dateFormat,
+          autoBackup,
+          maintenanceNotificationDays,
+          sessionTimeout,
+          recordsPerPage,
+          emailNotifications,
+          assetIdPrefix,
+          language,
+          maintenanceReminderFrequency,
+          dataRetentionDays,
         }),
       });
 
@@ -163,7 +196,6 @@ export default function Settings() {
 
       // Update local state with saved data
       setAppName(data.appName);
-      setTimezone(data.timezone);
       setMaintenanceMode(data.maintenanceMode);
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -365,37 +397,6 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  {/* Timezone */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
-                    <label
-                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
-                      htmlFor="timezone"
-                    >
-                      Timezone
-                    </label>
-                    <div className="sm:col-span-2">
-                      <select
-                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
-                        id="timezone"
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                      >
-                        <option value="UTC-8">
-                          (UTC-08:00) Pacific Time (US &amp; Canada)
-                        </option>
-                        <option value="UTC-5">
-                          (UTC-05:00) Eastern Time (US &amp; Canada)
-                        </option>
-                        <option value="UTC+1">
-                          (UTC+01:00) Central European Time
-                        </option>
-                        <option value="UTC+0">(UTC+00:00) London</option>
-                        <option value="UTC+8">(UTC+08:00) Singapore</option>
-                        <option value="UTC+9">(UTC+09:00) Tokyo</option>
-                      </select>
-                    </div>
-                  </div>
-
                   {/* Default Currency */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
                     <label
@@ -426,9 +427,7 @@ export default function Settings() {
                         <option value="NZD">
                           NZD - New Zealand Dollar (NZ$)
                         </option>
-                        <option value="NGN">
-                          NGN - Nigerian Naira (₦)
-                        </option>
+                        <option value="NGN">NGN - Nigerian Naira (₦)</option>
                         <option value="ZAR">
                           ZAR - South African Rand (R)
                         </option>
@@ -450,31 +449,375 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  {/* Maintenance Mode Toggle */}
+                  {/* Date Format */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="dateFormat"
+                    >
+                      Date Format
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="dateFormat"
+                        value={dateFormat}
+                        onChange={(e) => setDateFormat(e.target.value)}
+                      >
+                        <option value="MM/DD/YYYY">
+                          MM/DD/YYYY (US Format)
+                        </option>
+                        <option value="DD/MM/YYYY">
+                          DD/MM/YYYY (UK Format)
+                        </option>
+                        <option value="YYYY-MM-DD">
+                          YYYY-MM-DD (ISO Format)
+                        </option>
+                        <option value="DD.MM.YYYY">
+                          DD.MM.YYYY (European Format)
+                        </option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Choose how dates are displayed throughout the
+                        application
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Auto Backup Toggle */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
                     <label
                       className="text-sm font-medium text-gray-900 dark:text-white"
-                      htmlFor="maintenance"
+                      htmlFor="autoBackup"
                     >
-                      Maintenance Mode
+                      Auto Backup
                     </label>
                     <div className="sm:col-span-2 flex items-center gap-3">
                       <label
                         className="relative inline-flex items-center cursor-pointer"
-                        htmlFor="maintenance-toggle"
+                        htmlFor="autoBackup-toggle"
                       >
                         <input
                           className="sr-only peer"
-                          id="maintenance-toggle"
+                          id="autoBackup-toggle"
                           type="checkbox"
-                          checked={maintenanceMode}
-                          onChange={(e) => setMaintenanceMode(e.target.checked)}
+                          checked={autoBackup}
+                          onChange={(e) => setAutoBackup(e.target.checked)}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                      </label>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Automatically backup database daily
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Maintenance Mode Toggle */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="maintenance"
+                    >
+                      Maintenance Mode
+                    </label>
+                    <div className="sm:col-span-2">
+                      <div className="flex items-center gap-3 mb-2">
+                        <label
+                          className="relative inline-flex items-center cursor-pointer"
+                          htmlFor="maintenance-toggle"
+                        >
+                          <input
+                            className="sr-only peer"
+                            id="maintenance-toggle"
+                            type="checkbox"
+                            checked={maintenanceMode}
+                            onChange={(e) =>
+                              setMaintenanceMode(e.target.checked)
+                            }
+                          />
+                          <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-red-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
+                        <span className="text-sm text-gray-900 dark:text-white font-medium">
+                          {maintenanceMode ? "Enabled" : "Disabled"}
+                        </span>
+                      </div>
+                      {maintenanceMode && (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                          <svg
+                            className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                              Warning: Database operations are blocked
+                            </p>
+                            <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                              When maintenance mode is enabled, all database
+                              write operations (create, update, delete) are
+                              disabled. Users will see a maintenance message.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {!maintenanceMode && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Enable this to block all database operations while
+                          performing maintenance
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Maintenance Notification Days */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="maintenanceNotificationDays"
+                    >
+                      Maintenance Alert Timing
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="maintenanceNotificationDays"
+                        value={maintenanceNotificationDays}
+                        onChange={(e) =>
+                          setMaintenanceNotificationDays(
+                            parseInt(e.target.value)
+                          )
+                        }
+                      >
+                        <option value="1">1 day before due date</option>
+                        <option value="2">2 days before due date</option>
+                        <option value="3">3 days before due date</option>
+                        <option value="7">1 week before due date</option>
+                        <option value="14">2 weeks before due date</option>
+                        <option value="30">1 month before due date</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Get notified when scheduled maintenance is approaching
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Session Timeout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="sessionTimeout"
+                    >
+                      Session Timeout
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="sessionTimeout"
+                        value={sessionTimeout}
+                        onChange={(e) =>
+                          setSessionTimeout(parseInt(e.target.value))
+                        }
+                      >
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="240">4 hours</option>
+                        <option value="21360">Never Timeout</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Automatically log out users after this period of
+                        inactivity
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Records Per Page */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="recordsPerPage"
+                    >
+                      Records Per Page
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="recordsPerPage"
+                        value={recordsPerPage}
+                        onChange={(e) =>
+                          setRecordsPerPage(parseInt(e.target.value))
+                        }
+                      >
+                        <option value="10">10 records</option>
+                        <option value="25">25 records</option>
+                        <option value="50">50 records</option>
+                        <option value="100">100 records</option>
+                        <option value="200">200 records</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Default number of items to display per page in tables
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Email Notifications Toggle */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white"
+                      htmlFor="emailNotifications"
+                    >
+                      Email Notifications
+                    </label>
+                    <div className="sm:col-span-2 flex items-center gap-3">
+                      <label
+                        className="relative inline-flex items-center cursor-pointer"
+                        htmlFor="emailNotifications-toggle"
+                      >
+                        <input
+                          className="sr-only peer"
+                          id="emailNotifications-toggle"
+                          type="checkbox"
+                          checked={emailNotifications}
+                          onChange={(e) =>
+                            setEmailNotifications(e.target.checked)
+                          }
                         />
                         <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        Enable maintenance mode
+                        Send email alerts for important events
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Asset ID Prefix */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="assetIdPrefix"
+                    >
+                      Asset ID Prefix
+                    </label>
+                    <div className="sm:col-span-2">
+                      <input
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="assetIdPrefix"
+                        type="text"
+                        maxLength="10"
+                        placeholder="e.g., AST-, EQ-, DEV-"
+                        value={assetIdPrefix}
+                        onChange={(e) =>
+                          setAssetIdPrefix(e.target.value.toUpperCase())
+                        }
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Custom prefix for asset IDs (e.g., AST-001, EQ-001)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Language */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="language"
+                    >
+                      Language
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="language"
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Spanish (Español)</option>
+                        <option value="fr">French (Français)</option>
+                        <option value="de">German (Deutsch)</option>
+                        <option value="pt">Portuguese (Português)</option>
+                        <option value="zh">Chinese (中文)</option>
+                        <option value="ar">Arabic (العربية)</option>
+                        <option value="hi">Hindi (हिन्दी)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Application interface language
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Maintenance Reminder Frequency */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="maintenanceReminderFrequency"
+                    >
+                      Maintenance Schedule
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="maintenanceReminderFrequency"
+                        value={maintenanceReminderFrequency}
+                        onChange={(e) =>
+                          setMaintenanceReminderFrequency(e.target.value)
+                        }
+                      >
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">
+                          Bi-weekly (Every 2 weeks)
+                        </option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">
+                          Quarterly (Every 3 months)
+                        </option>
+                        <option value="semiannual">
+                          Semi-annual (Every 6 months)
+                        </option>
+                        <option value="annual">Annual (Yearly)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Default reminder frequency for maintenance tasks
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Data Retention */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="dataRetentionDays"
+                    >
+                      Data Retention
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="dataRetentionDays"
+                        value={dataRetentionDays}
+                        onChange={(e) =>
+                          setDataRetentionDays(parseInt(e.target.value))
+                        }
+                      >
+                        <option value="30">30 days</option>
+                        <option value="60">60 days</option>
+                        <option value="90">90 days (Recommended)</option>
+                        <option value="180">180 days (6 months)</option>
+                        <option value="365">365 days (1 year)</option>
+                        <option value="-1">Keep forever</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        How long to keep deleted items before permanent removal
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -482,9 +825,7 @@ export default function Settings() {
                 <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                   <button
                     onClick={() => {
-                      setAppName("AssetManager");
-                      setTimezone("UTC-5");
-                      setMaintenanceMode(false);
+                      loadSettings();
                     }}
                     className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                   >
