@@ -102,6 +102,9 @@ const Reports = () => {
   // Default currency state
   const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
+  // Current user state
+  const [currentUser, setCurrentUser] = useState(null);
+
   // Filtered data based on user selections
   const [filteredData, setFilteredData] = useState([]);
 
@@ -135,6 +138,36 @@ const Reports = () => {
       setDefaultCurrency(currency);
     };
     loadCurrency();
+  }, []);
+
+  // Load current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users`);
+        if (response.ok) {
+          const users = await response.json();
+          // Find the admin user first
+          const adminUser = users.find(
+            (user) =>
+              user.email === "admin@deil.com" ||
+              user.role === "Administrator" ||
+              user.name === "David Deil"
+          );
+
+          if (adminUser) {
+            setCurrentUser(adminUser);
+          } else if (users.length > 0) {
+            // Fallback to first user if admin not found
+            setCurrentUser(users[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   // Apply filters to asset data
@@ -469,8 +502,63 @@ const Reports = () => {
 
       // Handle Maintenance Records PDF export
       if (reportType === "Maintenance Records") {
-        if (maintenanceRecords.length === 0) {
-          showToast("No maintenance records to export.", "error");
+        // Apply filters to maintenance records
+        let filteredMaintenance = [...maintenanceRecords];
+
+        // Filter by category
+        if (assetCategory !== "All Categories") {
+          filteredMaintenance = filteredMaintenance.filter(
+            (record) => record.category === assetCategory
+          );
+        }
+
+        // Filter by asset ID
+        if (assetIdFilter.trim()) {
+          filteredMaintenance = filteredMaintenance.filter((record) =>
+            record.assetId?.toLowerCase().includes(assetIdFilter.toLowerCase())
+          );
+        }
+
+        // Filter by date range
+        if (dateRange !== "All Time") {
+          filteredMaintenance = filteredMaintenance.filter((record) => {
+            const dateString = record.completedDate;
+            if (!dateString) return false;
+
+            const recordDate = new Date(dateString);
+
+            if (
+              dateRange === "Custom Range" &&
+              customDateFrom &&
+              customDateTo
+            ) {
+              const fromDate = new Date(customDateFrom);
+              const toDate = new Date(customDateTo);
+              toDate.setHours(23, 59, 59, 999);
+              return recordDate >= fromDate && recordDate <= toDate;
+            }
+
+            const compareDate = new Date();
+            switch (dateRange) {
+              case "Last 30 Days":
+                compareDate.setDate(compareDate.getDate() - 30);
+                return recordDate >= compareDate;
+              case "Last 90 Days":
+                compareDate.setDate(compareDate.getDate() - 90);
+                return recordDate >= compareDate;
+              case "This Year":
+                return recordDate.getFullYear() === new Date().getFullYear();
+              default:
+                return true;
+            }
+          });
+        }
+
+        if (filteredMaintenance.length === 0) {
+          showToast(
+            "No maintenance records match the selected filters.",
+            "info"
+          );
           return;
         }
 
@@ -502,8 +590,8 @@ const Reports = () => {
         doc.setFontSize(8);
         doc.setTextColor(80);
 
-        const totalCost = maintenanceRecords.reduce(
-          (sum, r) => sum + (parseFloat(r.actualCost) || 0),
+        const totalCost = filteredMaintenance.reduce(
+          (sum, r) => sum + (parseFloat(r.cost) || 0),
           0
         );
 
@@ -513,7 +601,7 @@ const Reports = () => {
           yPosition + 12
         );
         doc.text(
-          `Total Records: ${maintenanceRecords.length}`,
+          `Total Records: ${filteredMaintenance.length}`,
           18,
           yPosition + 16
         );
@@ -535,15 +623,15 @@ const Reports = () => {
           head: [
             ["Asset", "Service Type", "Technician", "Date", "Cost", "Status"],
           ],
-          body: maintenanceRecords.map((record) => [
+          body: filteredMaintenance.map((record) => [
             `${record.assetName || "N/A"}\n${record.assetId || ""}`,
             record.serviceType || "N/A",
             record.technician || "N/A",
-            record.completionDate
-              ? new Date(record.completionDate).toLocaleDateString()
+            record.completedDate
+              ? new Date(record.completedDate).toLocaleDateString()
               : "N/A",
             `${getCurrencySymbol(defaultCurrency)}${parseFloat(
-              record.actualCost || 0
+              record.cost || 0
             ).toLocaleString(undefined, {
               minimumFractionDigits: 2,
             })}`,
@@ -631,7 +719,11 @@ const Reports = () => {
         `Category: ${assetCategory}`,
         `Asset ID Filter: ${assetIdFilter || "None"}`,
         `Generated: ${new Date().toLocaleString()}`,
-        `Generated By: David Deil (Administrator)`,
+        `Generated By: ${
+          currentUser
+            ? `${currentUser.name} (${currentUser.role})`
+            : "System User"
+        }`,
       ];
 
       reportInfo.forEach((info, index) => {
@@ -716,22 +808,93 @@ const Reports = () => {
 
       yPosition += 5;
 
-      // Add table with filtered data
-      autoTable(doc, {
-        startY: yPosition,
-        head: [
-          [
-            "Asset ID",
-            "Name",
-            "Category",
-            "Location",
-            "Status",
-            "Model",
-            "Serial #",
-            "Assigned To",
-          ],
-        ],
-        body: reportData.map((item) => [
+      // Determine columns based on report type
+      let tableHeaders, tableBody;
+
+      if (reportType === "Maintenance History") {
+        tableHeaders = [
+          "Asset ID",
+          "Name",
+          "Category",
+          "Status",
+          "Maintenance Period",
+          "Last Service",
+        ];
+        tableBody = reportData.map((item) => [
+          item.id || "-",
+          item.name || "-",
+          item.category || "-",
+          item.status || "-",
+          item.maintenancePeriod || "Not Set",
+          item.lastMaintenanceDate
+            ? new Date(item.lastMaintenanceDate).toLocaleDateString()
+            : "Never",
+        ]);
+      } else if (reportType === "Utilization") {
+        tableHeaders = [
+          "Asset ID",
+          "Name",
+          "Status",
+          "Assigned To",
+          "Department",
+          "Days In Use",
+        ];
+        tableBody = reportData.map((item) => {
+          const daysInUse = item.acquisitionDate
+            ? Math.floor(
+                (new Date() - new Date(item.acquisitionDate)) /
+                  (1000 * 60 * 60 * 24)
+              )
+            : "N/A";
+          return [
+            item.id || "-",
+            item.name || "-",
+            item.status || "-",
+            item.assignedTo || "Unassigned",
+            item.department || "N/A",
+            daysInUse,
+          ];
+        });
+      } else if (reportType === "Asset Status") {
+        tableHeaders = [
+          "Asset ID",
+          "Name",
+          "Category",
+          "Status",
+          "Location",
+          "Last Update",
+        ];
+        tableBody = reportData.map((item) => {
+          const lastUpdate =
+            item.lastUpdate ||
+            (item.acquisitionDate
+              ? new Date(item.acquisitionDate).toLocaleDateString()
+              : item.purchaseDate
+              ? new Date(item.purchaseDate).toLocaleDateString()
+              : item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString()
+              : "-");
+          return [
+            item.id || "-",
+            item.name || "-",
+            item.category || "-",
+            item.status || "-",
+            item.location || "N/A",
+            lastUpdate,
+          ];
+        });
+      } else {
+        tableHeaders = [
+          "Asset ID",
+          "Name",
+          "Category",
+          "Location",
+          "Status",
+          "Model",
+          "Serial #",
+          "Assigned To",
+        ];
+        tableBody = reportData.map((item) => [
           item.id || "-",
           item.name || "-",
           item.category || "-",
@@ -740,7 +903,14 @@ const Reports = () => {
           item.model || "-",
           item.serial || item.serialNumber || "-",
           item.assignedTo || "-",
-        ]),
+        ]);
+      }
+
+      // Add table with filtered data
+      autoTable(doc, {
+        startY: yPosition,
+        head: [tableHeaders],
+        body: tableBody,
         styles: {
           fontSize: 7,
           cellPadding: 2,
@@ -848,6 +1018,59 @@ const Reports = () => {
 
     // Handle Maintenance Records export
     if (reportType === "Maintenance Records") {
+      // Apply filters to maintenance records
+      let filteredMaintenance = [...maintenanceRecords];
+
+      // Filter by category
+      if (assetCategory !== "All Categories") {
+        filteredMaintenance = filteredMaintenance.filter(
+          (record) => record.category === assetCategory
+        );
+      }
+
+      // Filter by asset ID
+      if (assetIdFilter.trim()) {
+        filteredMaintenance = filteredMaintenance.filter((record) =>
+          record.assetId?.toLowerCase().includes(assetIdFilter.toLowerCase())
+        );
+      }
+
+      // Filter by date range
+      if (dateRange !== "All Time") {
+        filteredMaintenance = filteredMaintenance.filter((record) => {
+          const dateString = record.completedDate;
+          if (!dateString) return false;
+
+          const recordDate = new Date(dateString);
+
+          if (dateRange === "Custom Range" && customDateFrom && customDateTo) {
+            const fromDate = new Date(customDateFrom);
+            const toDate = new Date(customDateTo);
+            toDate.setHours(23, 59, 59, 999);
+            return recordDate >= fromDate && recordDate <= toDate;
+          }
+
+          const compareDate = new Date();
+          switch (dateRange) {
+            case "Last 30 Days":
+              compareDate.setDate(compareDate.getDate() - 30);
+              return recordDate >= compareDate;
+            case "Last 90 Days":
+              compareDate.setDate(compareDate.getDate() - 90);
+              return recordDate >= compareDate;
+            case "This Year":
+              return recordDate.getFullYear() === new Date().getFullYear();
+            default:
+              return true;
+          }
+        });
+      }
+
+      if (filteredMaintenance.length === 0) {
+        showToast("No maintenance records match the selected filters.", "info");
+        return;
+      }
+
       const headers = [
         "Asset ID",
         "Asset Name",
@@ -880,7 +1103,7 @@ const Reports = () => {
 
       const csvContent = [
         headers.join(","),
-        ...maintenanceRecords.map((record) => {
+        ...filteredMaintenance.map((record) => {
           return [
             escapeCSV(record.assetId),
             escapeCSV(record.assetName),
@@ -892,12 +1115,12 @@ const Reports = () => {
                 : ""
             ),
             escapeCSV(
-              record.completionDate
-                ? new Date(record.completionDate).toLocaleDateString()
+              record.completedDate
+                ? new Date(record.completedDate).toLocaleDateString()
                 : ""
             ),
             escapeCSV(record.estimatedCost),
-            escapeCSV(record.actualCost),
+            escapeCSV(record.cost),
             escapeCSV(record.status),
             escapeCSV(record.priority),
             escapeCSV(record.description),
@@ -923,23 +1146,150 @@ const Reports = () => {
     }
 
     // Create CSV content with filtered data (for asset reports)
-    const headers = [
-      "Asset ID",
-      "Asset Name",
-      "Category",
-      "Location",
-      "Status",
-      "Model",
-      "Serial Number",
-      "Assigned To",
-      "Department",
-      "Acquisition Date",
-      "Maintenance Period",
-    ];
+    let headers, csvRows;
 
-    const csvContent = [
-      headers.join(","),
-      ...reportData.map((item) => {
+    if (reportType === "Maintenance History") {
+      headers = [
+        "Asset ID",
+        "Asset Name",
+        "Category",
+        "Status",
+        "Maintenance Period",
+        "Last Service",
+      ];
+
+      csvRows = reportData.map((item) => {
+        const escapeCSV = (value) => {
+          if (value === null || value === undefined || value === "") {
+            return '""';
+          }
+          const strValue = String(value);
+          if (
+            strValue.includes(",") ||
+            strValue.includes('"') ||
+            strValue.includes("\n")
+          ) {
+            return `"${strValue.replace(/"/g, '""')}"`;
+          }
+          return `"${strValue}"`;
+        };
+
+        const lastService = item.lastMaintenanceDate
+          ? new Date(item.lastMaintenanceDate).toLocaleDateString()
+          : "Never";
+
+        return [
+          escapeCSV(item.id),
+          escapeCSV(item.name),
+          escapeCSV(item.category),
+          escapeCSV(item.status),
+          escapeCSV(item.maintenancePeriod || "Not Set"),
+          escapeCSV(lastService),
+        ].join(",");
+      });
+    } else if (reportType === "Utilization") {
+      headers = [
+        "Asset ID",
+        "Asset Name",
+        "Status",
+        "Assigned To",
+        "Department",
+        "Days In Use",
+      ];
+
+      csvRows = reportData.map((item) => {
+        const escapeCSV = (value) => {
+          if (value === null || value === undefined || value === "") {
+            return '""';
+          }
+          const strValue = String(value);
+          if (
+            strValue.includes(",") ||
+            strValue.includes('"') ||
+            strValue.includes("\n")
+          ) {
+            return `"${strValue.replace(/"/g, '""')}"`;
+          }
+          return `"${strValue}"`;
+        };
+
+        const daysInUse = item.acquisitionDate
+          ? Math.floor(
+              (new Date() - new Date(item.acquisitionDate)) /
+                (1000 * 60 * 60 * 24)
+            )
+          : "N/A";
+
+        return [
+          escapeCSV(item.id),
+          escapeCSV(item.name),
+          escapeCSV(item.status),
+          escapeCSV(item.assignedTo || "Unassigned"),
+          escapeCSV(item.department || "N/A"),
+          escapeCSV(daysInUse),
+        ].join(",");
+      });
+    } else if (reportType === "Asset Status") {
+      headers = [
+        "Asset ID",
+        "Asset Name",
+        "Category",
+        "Status",
+        "Location",
+        "Last Update",
+      ];
+
+      csvRows = reportData.map((item) => {
+        const escapeCSV = (value) => {
+          if (value === null || value === undefined || value === "") {
+            return '""';
+          }
+          const strValue = String(value);
+          if (
+            strValue.includes(",") ||
+            strValue.includes('"') ||
+            strValue.includes("\n")
+          ) {
+            return `"${strValue.replace(/"/g, '""')}"`;
+          }
+          return `"${strValue}"`;
+        };
+
+        const lastUpdate =
+          item.lastUpdate ||
+          (item.acquisitionDate
+            ? new Date(item.acquisitionDate).toLocaleDateString()
+            : item.purchaseDate
+            ? new Date(item.purchaseDate).toLocaleDateString()
+            : item.createdAt
+            ? new Date(item.createdAt).toLocaleDateString()
+            : "");
+
+        return [
+          escapeCSV(item.id),
+          escapeCSV(item.name),
+          escapeCSV(item.category),
+          escapeCSV(item.status),
+          escapeCSV(item.location || "N/A"),
+          escapeCSV(lastUpdate),
+        ].join(",");
+      });
+    } else {
+      headers = [
+        "Asset ID",
+        "Asset Name",
+        "Category",
+        "Location",
+        "Status",
+        "Model",
+        "Serial Number",
+        "Assigned To",
+        "Department",
+        "Acquisition Date",
+        "Maintenance Period",
+      ];
+
+      csvRows = reportData.map((item) => {
         // Format date field with fallbacks
         const acquisitionDate =
           item.acquisitionDate ||
@@ -976,8 +1326,10 @@ const Reports = () => {
           escapeCSV(acquisitionDate),
           escapeCSV(item.maintenancePeriod || item.maintenanceSchedule),
         ].join(",");
-      }),
-    ].join("\n");
+      });
+    }
+
+    const csvContent = [headers.join(","), ...csvRows].join("\n");
 
     // Create and download file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -1468,12 +1820,11 @@ const Reports = () => {
                         {item.maintenancePeriod || "Not Set"}
                       </td>
                       <td className="py-4 pl-4 text-gray-700 dark:text-gray-300">
-                        {item.lastService ||
-                          (item.acquisitionDate
-                            ? new Date(
-                                item.acquisitionDate
-                              ).toLocaleDateString()
-                            : "N/A")}
+                        {item.lastMaintenanceDate
+                          ? new Date(
+                              item.lastMaintenanceDate
+                            ).toLocaleDateString()
+                          : "Never"}
                       </td>
                     </>
                   )}
@@ -1542,7 +1893,7 @@ const Reports = () => {
                 {getCurrencySymbol(defaultCurrency)}
                 {maintenanceRecords
                   .reduce(
-                    (sum, record) => sum + (parseFloat(record.actualCost) || 0),
+                    (sum, record) => sum + (parseFloat(record.cost) || 0),
                     0
                   )
                   .toLocaleString(undefined, {
@@ -1560,8 +1911,7 @@ const Reports = () => {
                 {maintenanceRecords.length > 0
                   ? (
                       maintenanceRecords.reduce(
-                        (sum, record) =>
-                          sum + (parseFloat(record.actualCost) || 0),
+                        (sum, record) => sum + (parseFloat(record.cost) || 0),
                         0
                       ) / maintenanceRecords.length
                     ).toLocaleString(undefined, {
@@ -1658,13 +2008,13 @@ const Reports = () => {
                         {record.technician || "N/A"}
                       </td>
                       <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
-                        {record.completionDate
-                          ? new Date(record.completionDate).toLocaleDateString()
+                        {record.completedDate
+                          ? new Date(record.completedDate).toLocaleDateString()
                           : "N/A"}
                       </td>
                       <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold">
-                        $
-                        {parseFloat(record.actualCost || 0).toLocaleString(
+                        {getCurrencySymbol(defaultCurrency)}
+                        {parseFloat(record.cost || 0).toLocaleString(
                           undefined,
                           { minimumFractionDigits: 2, maximumFractionDigits: 2 }
                         )}

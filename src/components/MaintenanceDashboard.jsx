@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import API_BASE_URL from "../config/api";
+import { getDefaultCurrency, getCurrencySymbol } from "../config/currency";
 
 export default function MaintenanceDashboard({ onNavigateToCalendar }) {
   const [maintenanceData, setMaintenanceData] = useState({
@@ -24,6 +25,9 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
   const [actionNotes, setActionNotes] = useState("");
   const [actionCost, setActionCost] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Default currency state
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
@@ -73,6 +77,15 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
   useEffect(() => {
     loadMaintenanceData();
   }, [loadMaintenanceData]);
+
+  // Load default currency on component mount
+  useEffect(() => {
+    const loadCurrency = async () => {
+      const currency = await getDefaultCurrency();
+      setDefaultCurrency(currency);
+    };
+    loadCurrency();
+  }, []);
 
   const handleStartMaintenance = (maintenance) => {
     setSelectedMaintenance(maintenance);
@@ -437,7 +450,7 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
               {actionType === "complete" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Cost ($)
+                    Cost ({getCurrencySymbol(defaultCurrency)})
                   </label>
                   <input
                     type="number"
