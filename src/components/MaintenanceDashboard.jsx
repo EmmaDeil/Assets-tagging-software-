@@ -226,26 +226,27 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
       : allMaintenance;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             Maintenance Management
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
             Schedule, track, and manage asset maintenance
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => onNavigateToCalendar && onNavigateToCalendar()}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
           >
-            <span className="material-symbols-outlined text-sm">
+            <span className="material-symbols-outlined text-sm sm:text-base">
               calendar_month
             </span>
-            Calendar
+            <span className="hidden sm:inline">Calendar</span>
+            <span className="sm:hidden">Cal</span>
           </button>
         </div>
       </div>
@@ -253,7 +254,7 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
       {/* Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="border-b border-gray-200 dark:border-gray-700">
-          <div className="flex gap-2 p-2">
+          <div className="flex flex-wrap gap-2 p-2">
             {[
               { id: "all", label: "All", icon: "list" },
               { id: "overdue", label: "Overdue", icon: "warning" },
@@ -263,7 +264,7 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                   activeTab === tab.id
                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                     : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -272,14 +273,17 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                 <span className="material-symbols-outlined text-sm">
                   {tab.icon}
                 </span>
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">
+                  {tab.id === "inProgress" ? "Progress" : tab.label}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Maintenance List */}
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -302,13 +306,13 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                 return (
                   <div
                     key={maintenance._id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                       {/* Left: Asset Info */}
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                             {maintenance.assetName}
                           </h3>
                           <span
@@ -327,7 +331,7 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">
                               Asset ID:
@@ -375,21 +379,21 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                         </div>
 
                         {maintenance.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-2">
                             {maintenance.description}
                           </p>
                         )}
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="flex flex-col gap-2">
+                      <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
                         {maintenance.status === "Scheduled" && (
                           <>
                             <button
                               onClick={() =>
                                 handleStartMaintenance(maintenance)
                               }
-                              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-xs sm:text-sm"
                             >
                               <span className="material-symbols-outlined text-sm">
                                 play_arrow
@@ -398,12 +402,15 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                             </button>
                             <button
                               onClick={() => handleNotStarted(maintenance)}
-                              className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
+                              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 py-1.5 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-xs sm:text-sm whitespace-nowrap"
                             >
                               <span className="material-symbols-outlined text-sm">
                                 block
                               </span>
-                              Not Started
+                              <span className="hidden sm:inline">
+                                Not Started
+                              </span>
+                              <span className="sm:hidden">Skip</span>
                             </button>
                           </>
                         )}
@@ -412,7 +419,7 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                             onClick={() =>
                               handleCompleteMaintenance(maintenance)
                             }
-                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm"
                           >
                             <span className="material-symbols-outlined text-sm">
                               check_circle
@@ -433,30 +440,30 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
       {/* Action Modal */}
       {showActionModal && selectedMaintenance && (
         <div className="fixed inset-0 bg-white/80 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
                 {actionType === "start" && "Start Maintenance"}
                 {actionType === "complete" && "Complete Maintenance"}
                 {actionType === "notStarted" && "Mark as Not Started"}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {selectedMaintenance.assetName} -{" "}
                 {selectedMaintenance.serviceType}
               </p>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               {actionType === "complete" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Cost ({getCurrencySymbol(defaultCurrency)})
                   </label>
                   <input
                     type="number"
                     value={actionCost}
                     onChange={(e) => setActionCost(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Enter cost"
                     step="0.01"
                   />
@@ -464,20 +471,20 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Notes
                 </label>
                 <textarea
                   value={actionNotes}
                   onChange={(e) => setActionNotes(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Add notes about this maintenance..."
                 />
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+            <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => {
                   setShowActionModal(false);
@@ -485,14 +492,14 @@ export default function MaintenanceDashboard({ onNavigateToCalendar }) {
                   setActionNotes("");
                   setActionCost("");
                 }}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                className="w-full sm:w-auto px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
               >
                 Cancel
               </button>
               <button
                 onClick={submitAction}
                 disabled={submitting}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
                 {submitting ? "Submitting..." : "Confirm"}
               </button>
