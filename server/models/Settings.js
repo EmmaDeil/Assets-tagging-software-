@@ -23,6 +23,11 @@ const settingsSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  defaultCurrency: {
+    type: String,
+    default: 'USD',
+    enum: ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'INR', 'AUD', 'CAD', 'CHF', 'SGD', 'NZD', 'ZAR', 'BRL', 'MXN', 'AED', 'SAR', 'KRW', 'HKD', 'SEK', 'NOK', 'NGN']
+  },
   
   // API Settings
   apiKey: {
@@ -51,7 +56,7 @@ const settingsSchema = new mongoose.Schema({
   },
   companyName: {
     type: String,
-    default: 'AssetManager'
+    default: 'QR Tag Manager'
   },
   
   // Email Notifications Settings

@@ -10,6 +10,7 @@ import API_BASE_URL from "../config/api";
 
 export default function MaintenanceScheduleForm({
   assetId,
+  maintenanceData,
   onSuccess,
   onCancel,
 }) {
@@ -27,12 +28,25 @@ export default function MaintenanceScheduleForm({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!assetId) {
+    if (maintenanceData) {
+      // Pre-fill form with existing maintenance data for editing
+      setFormData({
+        assetId: maintenanceData.assetId || "",
+        assetName: maintenanceData.assetName || "",
+        serviceType: maintenanceData.serviceType || "Inspection",
+        technician: maintenanceData.technician || "",
+        scheduledDate: maintenanceData.scheduledDate
+          ? new Date(maintenanceData.scheduledDate).toISOString().split("T")[0]
+          : "",
+        priority: maintenanceData.priority || "Medium",
+        description: maintenanceData.description || "",
+      });
+    } else if (!assetId) {
       loadAssets();
     } else {
       loadAssetDetails(assetId);
     }
-  }, [assetId]);
+  }, [assetId, maintenanceData]);
 
   const loadAssets = async () => {
     try {
@@ -77,23 +91,38 @@ export default function MaintenanceScheduleForm({
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/maintenance/schedule`, {
-        method: "POST",
+      const url = maintenanceData
+        ? `${API_BASE_URL}/maintenance/${maintenanceData._id}`
+        : `${API_BASE_URL}/maintenance/schedule`;
+
+      const method = maintenanceData ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to schedule maintenance");
+        throw new Error(
+          errorData.error ||
+            `Failed to ${maintenanceData ? "update" : "schedule"} maintenance`
+        );
       }
 
       const result = await response.json();
-      console.log("Maintenance scheduled:", result);
+      console.log(
+        `Maintenance ${maintenanceData ? "updated" : "scheduled"}:`,
+        result
+      );
 
       if (onSuccess) onSuccess(result);
     } catch (error) {
-      console.error("Error scheduling maintenance:", error);
+      console.error(
+        `Error ${maintenanceData ? "updating" : "scheduling"} maintenance:`,
+        error
+      );
       setError(error.message);
     } finally {
       setLoading(false);

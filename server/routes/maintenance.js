@@ -330,20 +330,24 @@ router.put('/:id/start', async (req, res) => {
   try {
     const { technician, notes } = req.body;
     
+    // First fetch the existing maintenance record
+    const existingMaintenance = await Maintenance.findById(req.params.id);
+    
+    if (!existingMaintenance) {
+      return res.status(404).json({ message: 'Maintenance record not found' });
+    }
+    
+    // Update the maintenance record
     const maintenance = await Maintenance.findByIdAndUpdate(
       req.params.id,
       {
         status: 'In Progress',
         startedDate: new Date(),
-        technician: technician || maintenance.technician,
-        notes: notes || maintenance.notes
+        technician: technician || existingMaintenance.technician,
+        notes: notes || existingMaintenance.notes
       },
       { new: true, runValidators: true }
     );
-
-    if (!maintenance) {
-      return res.status(404).json({ message: 'Maintenance record not found' });
-    }
 
     // Update asset status
     await updateAssetMaintenanceStatus(maintenance.assetId);

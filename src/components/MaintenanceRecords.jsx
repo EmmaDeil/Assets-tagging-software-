@@ -7,12 +7,14 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import API_BASE_URL from "../config/api";
+import { getDefaultCurrency, getCurrencySymbol } from "../config/currency";
 
 export default function MaintenanceRecords() {
   const [records, setRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
@@ -36,6 +38,15 @@ export default function MaintenanceRecords() {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
+
+  // Load default currency on mount
+  useEffect(() => {
+    const loadCurrency = async () => {
+      const currency = await getDefaultCurrency();
+      setDefaultCurrency(currency);
+    };
+    loadCurrency();
+  }, []);
 
   const calculateStatistics = useCallback((data) => {
     if (data.length === 0) {
@@ -213,10 +224,12 @@ export default function MaintenanceRecords() {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount || 0);
+    const symbol = getCurrencySymbol(defaultCurrency);
+    const formattedAmount = parseFloat(amount || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${symbol}${formattedAmount}`;
   };
 
   // Get unique values for dropdowns

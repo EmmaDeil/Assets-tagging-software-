@@ -137,37 +137,6 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
   }, [loadMaintenanceRecords]);
 
   /**
-   * Handle deleting maintenance record
-   */
-  const handleDeleteMaintenance = async (maintenanceId) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this maintenance record?"
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/maintenance/${maintenanceId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        setMaintenanceRecords((prev) =>
-          prev.filter((record) => record._id !== maintenanceId)
-        );
-      }
-    } catch (error) {
-      console.error("Error deleting maintenance record:", error);
-      alert("Failed to delete maintenance record. Please try again.");
-    }
-  };
-
-  /**
    * Get status badge for maintenance record
    */
   const getMaintenanceStatusBadge = (status) => {
@@ -1017,26 +986,17 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                     {!loadingMaintenance && maintenanceRecords.length > 0 && (
                       <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                         <div className="overflow-x-auto">
-                          <table className="w-full min-w-[800px] text-left">
+                          <table className="w-full text-left">
                             <thead>
                               <tr className="bg-gray-50 dark:bg-gray-800">
-                                <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  Date
-                                </th>
                                 <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Service Type
                                 </th>
                                 <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  Technician
-                                </th>
-                                <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  Cost
+                                  Date
                                 </th>
                                 <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Status
-                                </th>
-                                <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  Actions
                                 </th>
                               </tr>
                             </thead>
@@ -1051,18 +1011,12 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
                                   >
                                     <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
-                                      {new Date(
-                                        record.date
-                                      ).toLocaleDateString()}
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
                                       {record.serviceType}
                                     </td>
                                     <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
-                                      {record.technician}
-                                    </td>
-                                    <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
-                                      ${record.cost.toFixed(2)}
+                                      {new Date(
+                                        record.scheduledDate || record.date
+                                      ).toLocaleDateString()}
                                     </td>
                                     <td className="p-4">
                                       <span
@@ -1073,19 +1027,6 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                         ></span>
                                         {record.status}
                                       </span>
-                                    </td>
-                                    <td className="p-4">
-                                      <button
-                                        onClick={() =>
-                                          handleDeleteMaintenance(record._id)
-                                        }
-                                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                        title="Delete record"
-                                      >
-                                        <span className="material-symbols-outlined text-lg">
-                                          delete
-                                        </span>
-                                      </button>
                                     </td>
                                   </tr>
                                 );
@@ -1134,7 +1075,9 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                               Schedule Maintenance for {asset.name}
                             </h2>
                             <button
-                              onClick={() => setShowAddMaintenance(false)}
+                              onClick={() => {
+                                setShowAddMaintenance(false);
+                              }}
                               className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                             >
                               <span className="material-symbols-outlined">
@@ -1154,7 +1097,9 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                 loadMaintenanceRecords(); // Reload records
                                 refreshData(); // Refresh asset data
                               }}
-                              onCancel={() => setShowAddMaintenance(false)}
+                              onCancel={() => {
+                                setShowAddMaintenance(false);
+                              }}
                             />
                           </div>
                         </div>

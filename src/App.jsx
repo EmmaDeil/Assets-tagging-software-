@@ -100,6 +100,11 @@ function AppContent() {
     return localStorage.getItem("editingAssetId") || null;
   });
 
+  // State: Delete confirmation modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Persist current page to localStorage whenever it changes
   React.useEffect(() => {
     localStorage.setItem("currentPage", currentPage);
@@ -161,6 +166,25 @@ function AppContent() {
     // TODO: Implement search functionality
   };
 
+  /**
+   * Handle delete asset confirmation
+   */
+  const handleDeleteAsset = async () => {
+    if (!assetToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteEquipment(assetToDelete.id);
+      console.log("Asset deleted successfully");
+      setShowDeleteModal(false);
+      setAssetToDelete(null);
+    } catch (error) {
+      alert(`Failed to delete asset: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header Component with Navigation */}
@@ -197,19 +221,9 @@ function AppContent() {
                 setEditingAssetId(asset.id);
                 setAssetsView("edit");
               }}
-              onDelete={async (asset) => {
-                if (
-                  window.confirm(
-                    `Are you sure you want to delete "${asset.name}"?`
-                  )
-                ) {
-                  try {
-                    await deleteEquipment(asset.id);
-                    console.log("Asset deleted successfully");
-                  } catch (error) {
-                    alert(`Failed to delete asset: ${error.message}`);
-                  }
-                }
+              onDelete={(asset) => {
+                setAssetToDelete(asset);
+                setShowDeleteModal(true);
               }}
               onAddNew={() => setAssetsView("add")}
             />
@@ -290,6 +304,86 @@ function AppContent() {
           {currentPage === "Settings" && <Settings />}
         </div>
       </main>
+
+      {/* Delete Asset Confirmation Modal */}
+      {showDeleteModal && assetToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full shrink-0">
+                  <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">
+                    warning
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Delete Asset
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-800 dark:text-red-300">
+                  <span className="font-semibold">⚠️ Warning:</span> You are
+                  about to permanently delete the asset{" "}
+                  <span className="font-bold">"{assetToDelete.name}"</span>.
+                </p>
+              </div>
+
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                This will remove all associated data including:
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400 list-disc list-inside">
+                <li>Asset details and specifications</li>
+                <li>Maintenance records</li>
+                <li>Attached documents</li>
+                <li>Activity history</li>
+              </ul>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setAssetToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="px-5 py-2.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAsset}
+                disabled={isDeleting}
+                className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-lg">
+                      delete_forever
+                    </span>
+                    <span>Delete Asset</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

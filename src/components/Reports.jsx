@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect, useCallback } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import API_BASE_URL from "../config/api";
+import { getDefaultCurrency, getCurrencySymbol } from "../config/currency";
 import { Line, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -90,6 +91,17 @@ const Reports = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
 
+  // Statistics trends state
+  const [statsWithTrends, setStatsWithTrends] = useState({
+    total: { count: 0, change: 0, trend: "neutral" },
+    inUse: { count: 0, change: 0, trend: "neutral" },
+    underMaintenance: { count: 0, change: 0, trend: "neutral" },
+    retired: { count: 0, change: 0, trend: "neutral" },
+  });
+
+  // Default currency state
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
+
   // Filtered data based on user selections
   const [filteredData, setFilteredData] = useState([]);
 
@@ -115,6 +127,15 @@ const Reports = () => {
       loadMaintenanceRecords();
     }
   }, [reportType, loadMaintenanceRecords]);
+
+  // Load default currency
+  useEffect(() => {
+    const loadCurrency = async () => {
+      const currency = await getDefaultCurrency();
+      setDefaultCurrency(currency);
+    };
+    loadCurrency();
+  }, []);
 
   // Apply filters to asset data
   useEffect(() => {
@@ -174,6 +195,79 @@ const Reports = () => {
     customDateTo,
     assetIdFilter,
   ]);
+
+  // Calculate statistics with trends whenever filtered data changes
+  useEffect(() => {
+    // Current counts from filtered data
+    const currentTotal = filteredData.length;
+    const currentInUse = filteredData.filter(
+      (item) => item.status === "In Use"
+    ).length;
+    const currentUnderMaintenance = filteredData.filter(
+      (item) => item.status === "Under Maintenance"
+    ).length;
+    const currentRetired = filteredData.filter(
+      (item) => item.status === "Retired"
+    ).length;
+
+    // Get last month's data for comparison
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    const lastMonthData = items.filter((item) => {
+      const dateString =
+        item.acquisitionDate || item.purchaseDate || item.createdAt;
+      if (!dateString) return false;
+      const itemDate = new Date(dateString);
+      return itemDate <= lastMonth;
+    });
+
+    const lastMonthTotal = lastMonthData.length;
+    const lastMonthInUse = lastMonthData.filter(
+      (item) => item.status === "In Use"
+    ).length;
+    const lastMonthUnderMaintenance = lastMonthData.filter(
+      (item) => item.status === "Under Maintenance"
+    ).length;
+    const lastMonthRetired = lastMonthData.filter(
+      (item) => item.status === "Retired"
+    ).length;
+
+    // Calculate percentage changes
+    const calcChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
+    const getTrend = (change) => {
+      if (change > 0) return "up";
+      if (change < 0) return "down";
+      return "neutral";
+    };
+
+    setStatsWithTrends({
+      total: {
+        count: currentTotal,
+        change: calcChange(currentTotal, lastMonthTotal),
+        trend: getTrend(currentTotal - lastMonthTotal),
+      },
+      inUse: {
+        count: currentInUse,
+        change: calcChange(currentInUse, lastMonthInUse),
+        trend: getTrend(currentInUse - lastMonthInUse),
+      },
+      underMaintenance: {
+        count: currentUnderMaintenance,
+        change: calcChange(currentUnderMaintenance, lastMonthUnderMaintenance),
+        trend: getTrend(currentUnderMaintenance - lastMonthUnderMaintenance),
+      },
+      retired: {
+        count: currentRetired,
+        change: calcChange(currentRetired, lastMonthRetired),
+        trend: getTrend(currentRetired - lastMonthRetired),
+      },
+    });
+  }, [filteredData, items]);
 
   // Use filtered data from context
   const reportData = filteredData;
@@ -424,7 +518,9 @@ const Reports = () => {
           yPosition + 16
         );
         doc.text(
-          `Total Cost: $${totalCost.toLocaleString(undefined, {
+          `Total Cost: ${getCurrencySymbol(
+            defaultCurrency
+          )}${totalCost.toLocaleString(undefined, {
             minimumFractionDigits: 2,
           })}`,
           18,
@@ -446,7 +542,9 @@ const Reports = () => {
             record.completionDate
               ? new Date(record.completionDate).toLocaleDateString()
               : "N/A",
-            `$${parseFloat(record.actualCost || 0).toLocaleString(undefined, {
+            `${getCurrencySymbol(defaultCurrency)}${parseFloat(
+              record.actualCost || 0
+            ).toLocaleString(undefined, {
               minimumFractionDigits: 2,
             })}`,
             record.status || "Completed",
@@ -1395,7 +1493,7 @@ const Reports = () => {
                       </td>
                       <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold">
                         {item.cost
-                          ? `${item.currency || "USD"} ${parseFloat(
+                          ? `${item.currency || ""} ${parseFloat(
                               item.cost
                             ).toLocaleString()}`
                           : "N/A"}
@@ -1441,7 +1539,7 @@ const Reports = () => {
                 Total Cost
               </p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                $
+                {getCurrencySymbol(defaultCurrency)}
                 {maintenanceRecords
                   .reduce(
                     (sum, record) => sum + (parseFloat(record.actualCost) || 0),
@@ -1458,7 +1556,7 @@ const Reports = () => {
                 Average Cost
               </p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                $
+                {getCurrencySymbol(defaultCurrency)}
                 {maintenanceRecords.length > 0
                   ? (
                       maintenanceRecords.reduce(
@@ -1496,7 +1594,7 @@ const Reports = () => {
             <table className="w-full text-left">
               <thead className="bg-gray-100 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="py-4 pr-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                     Asset
                   </th>
                   <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
@@ -1511,7 +1609,7 @@ const Reports = () => {
                   <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                     Cost
                   </th>
-                  <th className="py-4 pl-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
@@ -1543,7 +1641,7 @@ const Reports = () => {
                       key={index}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
-                      <td className="py-4 pr-4">
+                      <td className="py-4 px-4">
                         <div>
                           <p className="font-semibold text-gray-900 dark:text-white">
                             {record.assetName || "N/A"}
@@ -1592,10 +1690,23 @@ const Reports = () => {
             Total Assets
           </p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {reportData.length}
+            {statsWithTrends.total.count}
           </p>
-          <p className="text-xs text-green-600 dark:text-green-400">
-            ↑ 12% from last month
+          <p
+            className={`text-xs ${
+              statsWithTrends.total.trend === "up"
+                ? "text-green-600 dark:text-green-400"
+                : statsWithTrends.total.trend === "down"
+                ? "text-red-600 dark:text-red-400"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {statsWithTrends.total.trend === "up" && "↑"}
+            {statsWithTrends.total.trend === "down" && "↓"}
+            {statsWithTrends.total.trend === "neutral" && "→"}{" "}
+            {statsWithTrends.total.trend === "neutral"
+              ? "No change"
+              : `${Math.abs(statsWithTrends.total.change)}% from last month`}
           </p>
         </div>
         <div className="flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
@@ -1603,10 +1714,23 @@ const Reports = () => {
             In Use
           </p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {reportData.filter((item) => item.status === "In Use").length}
+            {statsWithTrends.inUse.count}
           </p>
-          <p className="text-xs text-green-600 dark:text-green-400">
-            ↑ 5% from last month
+          <p
+            className={`text-xs ${
+              statsWithTrends.inUse.trend === "up"
+                ? "text-green-600 dark:text-green-400"
+                : statsWithTrends.inUse.trend === "down"
+                ? "text-red-600 dark:text-red-400"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {statsWithTrends.inUse.trend === "up" && "↑"}
+            {statsWithTrends.inUse.trend === "down" && "↓"}
+            {statsWithTrends.inUse.trend === "neutral" && "→"}{" "}
+            {statsWithTrends.inUse.trend === "neutral"
+              ? "No change"
+              : `${Math.abs(statsWithTrends.inUse.change)}% from last month`}
           </p>
         </div>
         <div className="flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
@@ -1614,13 +1738,25 @@ const Reports = () => {
             Under Maintenance
           </p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {
-              reportData.filter((item) => item.status === "Under Maintenance")
-                .length
-            }
+            {statsWithTrends.underMaintenance.count}
           </p>
-          <p className="text-xs text-yellow-600 dark:text-yellow-400">
-            → No change
+          <p
+            className={`text-xs ${
+              statsWithTrends.underMaintenance.trend === "up"
+                ? "text-yellow-600 dark:text-yellow-400"
+                : statsWithTrends.underMaintenance.trend === "down"
+                ? "text-green-600 dark:text-green-400"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {statsWithTrends.underMaintenance.trend === "up" && "↑"}
+            {statsWithTrends.underMaintenance.trend === "down" && "↓"}
+            {statsWithTrends.underMaintenance.trend === "neutral" && "→"}{" "}
+            {statsWithTrends.underMaintenance.trend === "neutral"
+              ? "No change"
+              : `${Math.abs(
+                  statsWithTrends.underMaintenance.change
+                )}% from last month`}
           </p>
         </div>
         <div className="flex flex-col gap-2 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
@@ -1628,10 +1764,23 @@ const Reports = () => {
             Retired
           </p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {reportData.filter((item) => item.status === "Retired").length}
+            {statsWithTrends.retired.count}
           </p>
-          <p className="text-xs text-red-600 dark:text-red-400">
-            ↑ 2 this month
+          <p
+            className={`text-xs ${
+              statsWithTrends.retired.trend === "up"
+                ? "text-red-600 dark:text-red-400"
+                : statsWithTrends.retired.trend === "down"
+                ? "text-green-600 dark:text-green-400"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
+            {statsWithTrends.retired.trend === "up" && "↑"}
+            {statsWithTrends.retired.trend === "down" && "↓"}
+            {statsWithTrends.retired.trend === "neutral" && "→"}{" "}
+            {statsWithTrends.retired.trend === "neutral"
+              ? "No change"
+              : `${Math.abs(statsWithTrends.retired.change)}% from last month`}
           </p>
         </div>
       </div>

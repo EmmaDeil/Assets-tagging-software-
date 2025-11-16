@@ -76,6 +76,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import API_BASE_URL from "../config/api";
+import { getDefaultCurrency } from "../config/currency";
 
 const EditAsset = ({ assetId, onSave, onCancel }) => {
   // Access global equipment context
@@ -106,7 +107,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
     model: asset?.model || "",
     serial: asset?.serial || "",
     cost: asset?.cost || "",
-    currency: asset?.currency || "USD",
+    currency: asset?.currency || "",
     notes: asset?.notes || "",
   });
 
@@ -166,7 +167,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         model: asset.model || "",
         serial: asset.serial || "",
         cost: asset.cost || "",
-        currency: asset.currency || "USD",
+        currency: asset.currency || "",
         notes: asset.notes || "",
       });
       // Also load existing files if they exist
@@ -175,6 +176,17 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
       }
     }
   }, [asset]);
+
+  // Load default currency if asset doesn't have one
+  useEffect(() => {
+    const loadCurrency = async () => {
+      if (!formData.currency && asset) {
+        const currency = await getDefaultCurrency();
+        setFormData((prev) => ({ ...prev, currency }));
+      }
+    };
+    loadCurrency();
+  }, [formData.currency, asset]);
 
   // Fetch users for assignment dropdown
   useEffect(() => {
@@ -332,7 +344,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         model: formData.model,
         serial: formData.serial,
         cost: formData.cost ? parseFloat(formData.cost) : 0,
-        currency: formData.currency || "USD",
+        currency: formData.currency,
         notes: formData.notes,
         // Do NOT include attachedFiles - it's managed separately
         lastModified: new Date().toISOString(),
@@ -609,39 +621,18 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
               {/* Cost with Currency */}
               <label className="flex flex-col">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pb-2">
-                  Cost
+                  Cost ({formData.currency})
                 </span>
-                <div className="flex gap-2">
-                  <select
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleChange}
-                    className="w-24 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-2 text-base"
-                  >
-                    <option value="USD">USD $</option>
-                    <option value="EUR">EUR €</option>
-                    <option value="GBP">GBP £</option>
-                    <option value="JPY">JPY ¥</option>
-                    <option value="CNY">CNY ¥</option>
-                    <option value="INR">INR ₹</option>
-                    <option value="AUD">AUD $</option>
-                    <option value="CAD">CAD $</option>
-                    <option value="NGN">NGN ₦</option>
-                    <option value="ZAR">ZAR R</option>
-                    <option value="KES">KES KSh</option>
-                    <option value="GHS">GHS ₵</option>
-                  </select>
-                  <input
-                    type="number"
-                    name="cost"
-                    value={formData.cost}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
-                    placeholder="e.g., 1299.99"
-                  />
-                </div>
+                <input
+                  type="number"
+                  name="cost"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  step="0.01"
+                  min="0"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
+                  placeholder="e.g., 1299.99"
+                />
               </label>
 
               {/* Notes */}

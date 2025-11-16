@@ -30,6 +30,7 @@ export default function Settings() {
   const [timezone, setTimezone] = useState("UTC-5");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [apiKey, setApiKey] = useState("Loading...");
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
@@ -92,6 +93,7 @@ export default function Settings() {
       setCompanyName(data.companyName || "QR Tag Manager");
       setPrimaryColor(data.primaryColor || "#3B82F6");
       setSecondaryColor(data.secondaryColor || "#10B981");
+      setDefaultCurrency(data.defaultCurrency || "USD");
 
       // Format last API use
       if (data.lastApiUse) {
@@ -150,6 +152,7 @@ export default function Settings() {
           appName,
           timezone,
           maintenanceMode,
+          defaultCurrency,
         }),
       });
 
@@ -390,6 +393,60 @@ export default function Settings() {
                         <option value="UTC+8">(UTC+08:00) Singapore</option>
                         <option value="UTC+9">(UTC+09:00) Tokyo</option>
                       </select>
+                    </div>
+                  </div>
+
+                  {/* Default Currency */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                    <label
+                      className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                      htmlFor="currency"
+                    >
+                      Default Currency
+                    </label>
+                    <div className="sm:col-span-2">
+                      <select
+                        className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                        id="currency"
+                        value={defaultCurrency}
+                        onChange={(e) => setDefaultCurrency(e.target.value)}
+                      >
+                        <option value="USD">USD - US Dollar ($)</option>
+                        <option value="EUR">EUR - Euro (€)</option>
+                        <option value="GBP">GBP - British Pound (£)</option>
+                        <option value="JPY">JPY - Japanese Yen (¥)</option>
+                        <option value="CNY">CNY - Chinese Yuan (¥)</option>
+                        <option value="INR">INR - Indian Rupee (₹)</option>
+                        <option value="AUD">
+                          AUD - Australian Dollar (A$)
+                        </option>
+                        <option value="CAD">CAD - Canadian Dollar (C$)</option>
+                        <option value="CHF">CHF - Swiss Franc (Fr)</option>
+                        <option value="SGD">SGD - Singapore Dollar (S$)</option>
+                        <option value="NZD">
+                          NZD - New Zealand Dollar (NZ$)
+                        </option>
+                        <option value="NGN">
+                          NGN - Nigerian Naira (₦)
+                        </option>
+                        <option value="ZAR">
+                          ZAR - South African Rand (R)
+                        </option>
+                        <option value="BRL">BRL - Brazilian Real (R$)</option>
+                        <option value="MXN">MXN - Mexican Peso ($)</option>
+                        <option value="AED">AED - UAE Dirham (د.إ)</option>
+                        <option value="SAR">SAR - Saudi Riyal (﷼)</option>
+                        <option value="KRW">KRW - South Korean Won (₩)</option>
+                        <option value="HKD">
+                          HKD - Hong Kong Dollar (HK$)
+                        </option>
+                        <option value="SEK">SEK - Swedish Krona (kr)</option>
+                        <option value="NOK">NOK - Norwegian Krone (kr)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        This currency will be used throughout the application
+                        for all cost-related fields
+                      </p>
                     </div>
                   </div>
 

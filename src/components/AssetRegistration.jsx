@@ -64,6 +64,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import QRCode from "react-qr-code";
 import API_BASE_URL from "../config/api";
+import { getDefaultCurrency } from "../config/currency";
 
 const AssetRegistration = ({ onSuccess, onCancel }) => {
   // Access global equipment context to add new assets
@@ -100,7 +101,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     assignedTo: "",
     department: "",
     cost: "",
-    currency: "USD",
+    currency: "",
   });
 
   // Success modal state: Controls post-registration success dialog
@@ -171,6 +172,17 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
     };
 
     fetchTags();
+  }, []);
+
+  /**
+   * Load default currency from settings
+   */
+  useEffect(() => {
+    const loadCurrency = async () => {
+      const currency = await getDefaultCurrency();
+      setFormData((prev) => ({ ...prev, currency }));
+    };
+    loadCurrency();
   }, []);
 
   /**
@@ -286,7 +298,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
         purchaseDate: formData.acquisitionDate,
         acquisitionDate: formData.acquisitionDate,
         cost: formData.cost ? parseFloat(formData.cost) : 0,
-        currency: formData.currency || "USD",
+        currency: formData.currency,
         assignedTo: formData.assignedTo || "",
         department: formData.department || "",
       };
@@ -372,7 +384,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
       assignedTo: "",
       department: "",
       cost: "",
-      currency: "USD",
+      currency: formData.currency, // Keep the current currency
     });
 
     // Clear uploaded files
@@ -826,39 +838,18 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
             <div className="md:col-span-1">
               <label className="flex flex-col w-full">
                 <p className="text-gray-700 dark:text-gray-300 text-sm font-semibold leading-normal pb-2.5">
-                  Cost
+                  Cost ({formData.currency})
                 </p>
-                <div className="flex gap-2">
-                  <select
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleChange}
-                    className="form-input w-24 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 p-2 text-base font-normal transition-all"
-                  >
-                    <option value="USD">USD $</option>
-                    <option value="EUR">EUR €</option>
-                    <option value="GBP">GBP £</option>
-                    <option value="JPY">JPY ¥</option>
-                    <option value="CNY">CNY ¥</option>
-                    <option value="INR">INR ₹</option>
-                    <option value="AUD">AUD $</option>
-                    <option value="CAD">CAD $</option>
-                    <option value="NGN">NGN ₦</option>
-                    <option value="ZAR">ZAR R</option>
-                    <option value="KES">KES KSh</option>
-                    <option value="GHS">GHS ₵</option>
-                  </select>
-                  <input
-                    type="number"
-                    name="cost"
-                    value={formData.cost}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className="form-input flex-1 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal transition-all"
-                    placeholder="e.g., 1299.99"
-                  />
-                </div>
+                <input
+                  type="number"
+                  name="cost"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  step="0.01"
+                  min="0"
+                  className="form-input flex-1 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal transition-all"
+                  placeholder="e.g., 1299.99"
+                />
               </label>
             </div>
 
