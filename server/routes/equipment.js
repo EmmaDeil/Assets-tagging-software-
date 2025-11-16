@@ -371,21 +371,17 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
       equipment.attachedFiles = [];
     }
     
-    // Create a new plain object with explicit type casting to avoid Mongoose casting issues
-    const newFile = {
-      name: String(req.file.originalname),
-      type: String(req.file.mimetype),
-      id: String(req.file.filename),
-      data: String(base64Data),
+    // Push file data directly to the array - Mongoose will handle subdocument creation
+    equipment.attachedFiles.push({
+      name: req.file.originalname,
+      type: req.file.mimetype,
+      id: req.file.filename,
+      data: base64Data,
       uploadDate: new Date(),
-      size: Number(req.file.size)
-    };
+      size: req.file.size
+    });
     
-    equipment.attachedFiles.push(newFile);
     equipment.lastModified = new Date();
-    
-    // Mark the array as modified to ensure Mongoose saves it
-    equipment.markModified('attachedFiles');
 
     await equipment.save();
 
@@ -407,13 +403,16 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
     });
     await activity.save();
 
+    // Get the last added file from the array
+    const addedFile = equipment.attachedFiles[equipment.attachedFiles.length - 1];
+
     // Return file data without base64 (too large for response)
     const responseFile = {
-      name: newFile.name,
-      type: newFile.type,
-      id: newFile.id,
-      uploadDate: newFile.uploadDate,
-      size: newFile.size
+      name: addedFile.name,
+      type: addedFile.type,
+      id: addedFile.id,
+      uploadDate: addedFile.uploadDate,
+      size: addedFile.size
     };
 
     res.json({ 
