@@ -16,9 +16,14 @@
  * @param {Array} recentActivity - Array of recent activity objects with asset, action, user, and date
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import API_BASE_URL from "../config/api";
 
-export default function Dashboard({ assets = [], recentActivity = [] }) {
+export default function Dashboard({
+  assets = [],
+  recentActivity = [],
+  onNavigate,
+}) {
   // Filter modal state
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -35,6 +40,43 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
     dateFrom: "",
     dateTo: "",
   });
+
+  // Maintenance data state
+  const [maintenanceStats, setMaintenanceStats] = useState({
+    overdue: 0,
+    dueToday: 0,
+    inProgress: 0,
+    scheduled: 0,
+  });
+
+  // Fetch maintenance stats
+  const loadMaintenanceStats = useCallback(async () => {
+    try {
+      const [overdue, dueToday, inProgress, scheduled] = await Promise.all([
+        fetch(`${API_BASE_URL}/maintenance/overdue/list`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/maintenance/due/today`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/maintenance?status=In Progress`).then((r) =>
+          r.json()
+        ),
+        fetch(`${API_BASE_URL}/maintenance?status=Scheduled`).then((r) =>
+          r.json()
+        ),
+      ]);
+
+      setMaintenanceStats({
+        overdue: overdue.length || 0,
+        dueToday: dueToday.length || 0,
+        inProgress: inProgress.length || 0,
+        scheduled: scheduled.length || 0,
+      });
+    } catch (error) {
+      console.error("Error loading maintenance stats:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMaintenanceStats();
+  }, [loadMaintenanceStats]);
 
   // Apply filters to assets
   const filteredAssets = assets.filter((asset) => {
@@ -409,6 +451,94 @@ export default function Dashboard({ assets = [], recentActivity = [] }) {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Maintenance Stats Cards */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Maintenance Overview
+          </h2>
+          <button
+            onClick={() => onNavigate && onNavigate("Maintenance")}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-1"
+          >
+            View All
+            <span className="material-symbols-outlined text-sm">
+              arrow_forward
+            </span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Overdue Card */}
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                  Overdue
+                </p>
+                <p className="text-3xl font-bold text-red-900 dark:text-red-300 mt-1">
+                  {maintenanceStats.overdue}
+                </p>
+              </div>
+              <span className="material-symbols-outlined text-4xl text-red-600 dark:text-red-400">
+                warning
+              </span>
+            </div>
+          </div>
+
+          {/* Due Soon Card */}
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                  Due Soon
+                </p>
+                <p className="text-3xl font-bold text-orange-900 dark:text-orange-300 mt-1">
+                  {maintenanceStats.dueToday}
+                </p>
+              </div>
+              <span className="material-symbols-outlined text-4xl text-orange-600 dark:text-orange-400">
+                schedule
+              </span>
+            </div>
+          </div>
+
+          {/* In Progress Card */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                  In Progress
+                </p>
+                <p className="text-3xl font-bold text-yellow-900 dark:text-yellow-300 mt-1">
+                  {maintenanceStats.inProgress}
+                </p>
+              </div>
+              <span className="material-symbols-outlined text-4xl text-yellow-600 dark:text-yellow-400">
+                engineering
+              </span>
+            </div>
+          </div>
+
+          {/* Scheduled Card */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  Scheduled
+                </p>
+                <p className="text-3xl font-bold text-blue-900 dark:text-blue-300 mt-1">
+                  {maintenanceStats.scheduled}
+                </p>
+              </div>
+              <span className="material-symbols-outlined text-4xl text-blue-600 dark:text-blue-400">
+                event_available
+              </span>
+            </div>
           </div>
         </div>
       </div>

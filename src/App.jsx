@@ -50,6 +50,9 @@ import UserManagement from "./components/UserManagement";
 import Reports from "./components/Reports";
 import Settings from "./components/Settings";
 import UserProfile from "./components/UserProfile";
+import MaintenanceDashboard from "./components/MaintenanceDashboard";
+import MaintenanceRecords from "./components/MaintenanceRecords";
+import MaintenanceCalendar from "./components/MaintenanceCalendar";
 
 /**
  * AppContent component
@@ -172,7 +175,14 @@ function AppContent() {
         <div className="flex flex-col w-full max-w-7xl">
           {/* Dashboard Page */}
           {currentPage === "Dashboard" && (
-            <Dashboard assets={items} recentActivity={activities} />
+            <Dashboard
+              assets={items}
+              recentActivity={activities}
+              onNavigate={(page) => {
+                setCurrentPage(page);
+                localStorage.setItem("currentPage", page);
+              }}
+            />
           )}
 
           {/* Assets Page with Management View */}
@@ -259,6 +269,22 @@ function AppContent() {
 
           {/* User Profile Page */}
           {currentPage === "Profile" && <UserProfile />}
+
+          {/* Maintenance Management Page */}
+          {currentPage === "Maintenance" && (
+            <MaintenanceDashboard
+              onNavigateToCalendar={() => {
+                setCurrentPage("MaintenanceCalendar");
+                localStorage.setItem("currentPage", "MaintenanceCalendar");
+              }}
+            />
+          )}
+
+          {/* Maintenance Records Page */}
+          {currentPage === "MaintenanceRecords" && <MaintenanceRecords />}
+
+          {/* Maintenance Calendar Page */}
+          {currentPage === "MaintenanceCalendar" && <MaintenanceCalendar />}
 
           {/* Settings Page */}
           {currentPage === "Settings" && <Settings />}

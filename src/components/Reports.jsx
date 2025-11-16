@@ -1,5 +1,6 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
+import API_BASE_URL from "../config/api";
 import { Line, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -64,6 +65,11 @@ const Reports = () => {
         "Track maintenance schedules, service records, and assets currently under maintenance or requiring attention",
       icon: "build",
     },
+    "Maintenance Records": {
+      description:
+        "Complete maintenance history with service details, costs, technicians, and completion dates for all assets",
+      icon: "history",
+    },
     "Full Inventory": {
       description:
         "Complete asset inventory list with all details including ID, category, location, acquisition date, and cost",
@@ -80,8 +86,35 @@ const Reports = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [assetIdFilter, setAssetIdFilter] = useState("");
 
+  // Maintenance records state
+  const [maintenanceRecords, setMaintenanceRecords] = useState([]);
+  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+
   // Filtered data based on user selections
   const [filteredData, setFilteredData] = useState([]);
+
+  const loadMaintenanceRecords = useCallback(async () => {
+    try {
+      setLoadingMaintenance(true);
+      const response = await fetch(
+        `${API_BASE_URL}/maintenance?status=Completed`
+      );
+      const data = await response.json();
+      setMaintenanceRecords(data);
+    } catch (error) {
+      console.error("Error loading maintenance records:", error);
+      showToast("Failed to load maintenance records", "error");
+    } finally {
+      setLoadingMaintenance(false);
+    }
+  }, []);
+
+  // Fetch maintenance records when report type is "Maintenance Records"
+  useEffect(() => {
+    if (reportType === "Maintenance Records") {
+      loadMaintenanceRecords();
+    }
+  }, [reportType, loadMaintenanceRecords]);
 
   // Apply filters to asset data
   useEffect(() => {
@@ -339,6 +372,117 @@ const Reports = () => {
   const handleExportPDF = () => {
     try {
       console.log("Starting PDF export...");
+
+      // Handle Maintenance Records PDF export
+      if (reportType === "Maintenance Records") {
+        if (maintenanceRecords.length === 0) {
+          showToast("No maintenance records to export.", "error");
+          return;
+        }
+
+        const doc = new jsPDF();
+        let yPosition = 22;
+
+        // Header
+        doc.setFillColor(139, 92, 246); // Purple for maintenance
+        doc.rect(0, 0, 210, 35, "F");
+        doc.setFontSize(24);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text("AssetManager", 14, 15);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "normal");
+        doc.text("Maintenance Records Report", 14, 26);
+
+        doc.setTextColor(0, 0, 0);
+        yPosition = 45;
+
+        // Report Information
+        doc.setFillColor(245, 247, 250);
+        doc.roundedRect(14, yPosition, 182, 25, 2, 2, "F");
+        doc.setFontSize(9);
+        doc.setTextColor(60);
+        doc.setFont("helvetica", "bold");
+        doc.text("Report Details", 18, yPosition + 6);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(80);
+
+        const totalCost = maintenanceRecords.reduce(
+          (sum, r) => sum + (parseFloat(r.actualCost) || 0),
+          0
+        );
+
+        doc.text(
+          `Generated: ${new Date().toLocaleString()}`,
+          18,
+          yPosition + 12
+        );
+        doc.text(
+          `Total Records: ${maintenanceRecords.length}`,
+          18,
+          yPosition + 16
+        );
+        doc.text(
+          `Total Cost: $${totalCost.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+          })}`,
+          18,
+          yPosition + 20
+        );
+
+        yPosition += 32;
+
+        // Table
+        autoTable(doc, {
+          startY: yPosition,
+          head: [
+            ["Asset", "Service Type", "Technician", "Date", "Cost", "Status"],
+          ],
+          body: maintenanceRecords.map((record) => [
+            `${record.assetName || "N/A"}\n${record.assetId || ""}`,
+            record.serviceType || "N/A",
+            record.technician || "N/A",
+            record.completionDate
+              ? new Date(record.completionDate).toLocaleDateString()
+              : "N/A",
+            `$${parseFloat(record.actualCost || 0).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}`,
+            record.status || "Completed",
+          ]),
+          styles: {
+            fontSize: 8,
+            cellPadding: 3,
+          },
+          headStyles: {
+            fillColor: [139, 92, 246],
+            textColor: 255,
+            fontStyle: "bold",
+            fontSize: 9,
+          },
+          alternateRowStyles: {
+            fillColor: [248, 250, 252],
+          },
+          columnStyles: {
+            0: { cellWidth: 40 },
+            1: { cellWidth: 35 },
+            2: { cellWidth: 30 },
+            3: { cellWidth: 25 },
+            4: { cellWidth: 25, halign: "right" },
+            5: { cellWidth: 25, halign: "center" },
+          },
+        });
+
+        const filename = `maintenance-records-${
+          new Date().toISOString().split("T")[0]
+        }.pdf`;
+        doc.save(filename);
+        showToast("PDF exported successfully!", "success");
+        return;
+      }
+
+      // Original asset report PDF export
       console.log("Report data count:", reportData.length);
 
       if (reportData.length === 0) {
@@ -603,7 +747,84 @@ const Reports = () => {
   // Handle export CSV
   const handleExportCSV = () => {
     console.log("Exporting to CSV...");
-    // Create CSV content with filtered data
+
+    // Handle Maintenance Records export
+    if (reportType === "Maintenance Records") {
+      const headers = [
+        "Asset ID",
+        "Asset Name",
+        "Service Type",
+        "Technician",
+        "Scheduled Date",
+        "Completion Date",
+        "Estimated Cost",
+        "Actual Cost",
+        "Status",
+        "Priority",
+        "Description",
+        "Notes",
+      ];
+
+      const escapeCSV = (value) => {
+        if (value === null || value === undefined || value === "") {
+          return '""';
+        }
+        const strValue = String(value);
+        if (
+          strValue.includes(",") ||
+          strValue.includes('"') ||
+          strValue.includes("\n")
+        ) {
+          return `"${strValue.replace(/"/g, '""')}"`;
+        }
+        return `"${strValue}"`;
+      };
+
+      const csvContent = [
+        headers.join(","),
+        ...maintenanceRecords.map((record) => {
+          return [
+            escapeCSV(record.assetId),
+            escapeCSV(record.assetName),
+            escapeCSV(record.serviceType),
+            escapeCSV(record.technician),
+            escapeCSV(
+              record.scheduledDate
+                ? new Date(record.scheduledDate).toLocaleDateString()
+                : ""
+            ),
+            escapeCSV(
+              record.completionDate
+                ? new Date(record.completionDate).toLocaleDateString()
+                : ""
+            ),
+            escapeCSV(record.estimatedCost),
+            escapeCSV(record.actualCost),
+            escapeCSV(record.status),
+            escapeCSV(record.priority),
+            escapeCSV(record.description),
+            escapeCSV(record.completionNotes),
+          ].join(",");
+        }),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `maintenance-records-${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("CSV exported successfully!", "success");
+      return;
+    }
+
+    // Create CSV content with filtered data (for asset reports)
     const headers = [
       "Asset ID",
       "Asset Name",
@@ -753,6 +974,7 @@ const Reports = () => {
               <option>Asset Status</option>
               <option>Utilization</option>
               <option>Maintenance History</option>
+              <option>Maintenance Records</option>
               <option>Full Inventory</option>
             </select>
             {/* Report Type Description */}
@@ -1200,6 +1422,168 @@ const Reports = () => {
           </table>
         </div>
       </div>
+
+      {/* Maintenance Records Section */}
+      {reportType === "Maintenance Records" && (
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Records
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                {maintenanceRecords.length}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Cost
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                $
+                {maintenanceRecords
+                  .reduce(
+                    (sum, record) => sum + (parseFloat(record.actualCost) || 0),
+                    0
+                  )
+                  .toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Average Cost
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                $
+                {maintenanceRecords.length > 0
+                  ? (
+                      maintenanceRecords.reduce(
+                        (sum, record) =>
+                          sum + (parseFloat(record.actualCost) || 0),
+                        0
+                      ) / maintenanceRecords.length
+                    ).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : "0.00"}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Top Service
+              </p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white mt-1 truncate">
+                {maintenanceRecords.length > 0
+                  ? Object.entries(
+                      maintenanceRecords.reduce((acc, record) => {
+                        acc[record.serviceType] =
+                          (acc[record.serviceType] || 0) + 1;
+                        return acc;
+                      }, {})
+                    ).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"
+                  : "N/A"}
+              </p>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-100 dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="py-4 pr-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Asset
+                  </th>
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Service Type
+                  </th>
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Technician
+                  </th>
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Completed Date
+                  </th>
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Cost
+                  </th>
+                  <th className="py-4 pl-4 text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {loadingMaintenance ? (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span className="ml-3 text-gray-600 dark:text-gray-400">
+                          Loading maintenance records...
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : maintenanceRecords.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="py-12 text-center text-gray-500 dark:text-gray-400"
+                    >
+                      No completed maintenance records found
+                    </td>
+                  </tr>
+                ) : (
+                  maintenanceRecords.map((record, index) => (
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      <td className="py-4 pr-4">
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {record.assetName || "N/A"}
+                          </p>
+                          <p className="text-xs font-mono text-gray-500 dark:text-gray-400">
+                            {record.assetId || ""}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {record.serviceType || "N/A"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {record.technician || "N/A"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
+                        {record.completionDate
+                          ? new Date(record.completionDate).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="py-4 px-4 text-gray-700 dark:text-gray-300 font-semibold">
+                        $
+                        {parseFloat(record.actualCost || 0).toLocaleString(
+                          undefined,
+                          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                        )}
+                      </td>
+                      <td className="py-4 pl-4">
+                        <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          {record.status || "Completed"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Summary Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

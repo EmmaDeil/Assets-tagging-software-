@@ -167,7 +167,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight cursor-pointer truncate"
           onClick={() => handleNavClick("Dashboard")}
         >
-          AssetManager
+          QR Tag Manager
         </h2>
       </div>
 
@@ -204,6 +204,18 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
             } transition-colors`}
           >
             Users
+          </button>
+          <button
+            onClick={() => handleNavClick("Maintenance")}
+            className={`${
+              activePage === "Maintenance" ||
+              activePage === "MaintenanceRecords" ||
+              activePage === "MaintenanceCalendar"
+                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
+                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
+            } transition-colors`}
+          >
+            Maintenance
           </button>
           <button
             onClick={() => handleNavClick("Reports")}
@@ -284,6 +296,21 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
                 }`}
               >
                 <span className="text-sm">👥 Users</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavClick("Maintenance");
+                  setShowMobileMenu(false);
+                }}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                  activePage === "Maintenance" ||
+                  activePage === "MaintenanceRecords" ||
+                  activePage === "MaintenanceCalendar"
+                    ? "text-blue-600 font-semibold bg-blue-50"
+                    : "text-gray-700"
+                }`}
+              >
+                <span className="text-sm">🔧 Maintenance</span>
               </button>
               <button
                 onClick={() => {

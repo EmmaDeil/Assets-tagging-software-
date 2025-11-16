@@ -23,6 +23,16 @@ const maintenanceSchema = new mongoose.Schema(
       required: [true, 'Maintenance date is required'],
       default: Date.now,
     },
+    scheduledDate: {
+      type: Date,
+      required: true,
+    },
+    startedDate: {
+      type: Date,
+    },
+    completedDate: {
+      type: Date,
+    },
     serviceType: {
       type: String,
       required: [true, 'Service type is required'],
@@ -30,6 +40,7 @@ const maintenanceSchema = new mongoose.Schema(
         'Annual Inspection',
         'Repair',
         'Preventative Maintenance',
+        'Preventive Maintenance',
         'Emergency Repair',
         'Routine Maintenance',
         'Calibration',
@@ -52,8 +63,25 @@ const maintenanceSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['Scheduled', 'In Progress', 'Completed', 'Cancelled'],
+      enum: ['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Not Started'],
       default: 'Scheduled',
+    },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High', 'Critical'],
+      default: 'Medium',
+    },
+    isOverdue: {
+      type: Boolean,
+      default: false,
+    },
+    notificationSent: {
+      type: Boolean,
+      default: false,
+    },
+    reminderSent: {
+      type: Boolean,
+      default: false,
     },
     description: {
       type: String,
@@ -81,6 +109,9 @@ maintenanceSchema.index({ assetId: 1, date: -1 });
 maintenanceSchema.index({ status: 1 });
 maintenanceSchema.index({ serviceType: 1 });
 maintenanceSchema.index({ date: -1 });
+maintenanceSchema.index({ scheduledDate: 1 });
+maintenanceSchema.index({ isOverdue: 1 });
+maintenanceSchema.index({ status: 1, scheduledDate: 1 });
 
 const Maintenance = mongoose.model('Maintenance', maintenanceSchema);
 

@@ -89,6 +89,22 @@ const equipmentSchema = new mongoose.Schema(
       ],
       default: '',
     },
+    // Maintenance tracking fields
+    lastMaintenanceDate: {
+      type: Date,
+    },
+    nextScheduledMaintenance: {
+      type: Date,
+    },
+    maintenanceStatus: {
+      type: String,
+      enum: ['Up to Date', 'Due Soon', 'Overdue', 'In Progress', 'Not Scheduled'],
+      default: 'Not Scheduled',
+    },
+    maintenanceDueNotificationSent: {
+      type: Boolean,
+      default: false,
+    },
     notes: {
       type: String, // Legacy field - kept for backwards compatibility
     },

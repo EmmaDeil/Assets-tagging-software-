@@ -58,10 +58,11 @@
  * />
  */
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import { EquipmentContext } from "../context/EquipmentContext";
 import QRCode from "react-qr-code";
 import API_BASE_URL from "../config/api";
+import MaintenanceScheduleForm from "./MaintenanceScheduleForm";
 
 const AssetDetails = ({ assetId, onClose, onEdit }) => {
   // Toast notification state
@@ -92,15 +93,6 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [loadingMaintenance, setLoadingMaintenance] = useState(false);
   const [showAddMaintenance, setShowAddMaintenance] = useState(false);
-  const [maintenanceFormData, setMaintenanceFormData] = useState({
-    serviceType: "",
-    technician: "",
-    cost: "",
-    status: "Scheduled",
-    date: new Date().toISOString().split("T")[0],
-    description: "",
-    notes: "",
-  });
 
   // State: Documents
   const [uploadingDocument, setUploadingDocument] = useState(false);
@@ -119,83 +111,30 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     }
   }, [asset]);
 
-  // Fetch maintenance records when component mounts or assetId changes
-  useEffect(() => {
-    const fetchMaintenanceRecords = async () => {
-      if (!assetId) return;
-
-      try {
-        setLoadingMaintenance(true);
-        const response = await fetch(
-          `${API_BASE_URL}/maintenance?assetId=${assetId}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setMaintenanceRecords(data);
-        }
-      } catch (error) {
-        console.error("Error fetching maintenance records:", error);
-      } finally {
-        setLoadingMaintenance(false);
-      }
-    };
-
-    fetchMaintenanceRecords();
-  }, [assetId]);
-
-  /**
-   * Handle maintenance form input changes
-   */
-  const handleMaintenanceChange = (e) => {
-    const { name, value } = e.target;
-    setMaintenanceFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  /**
-   * Handle adding new maintenance record
-   */
-  const handleAddMaintenance = async (e) => {
-    e.preventDefault();
+  // Function to load maintenance records
+  const loadMaintenanceRecords = useCallback(async () => {
+    if (!assetId) return;
 
     try {
-      const maintenanceData = {
-        ...maintenanceFormData,
-        assetId: asset.id,
-        assetName: asset.name,
-        cost: parseFloat(maintenanceFormData.cost) || 0,
-      };
-
-      const response = await fetch(`${API_BASE_URL}/maintenance`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(maintenanceData),
-      });
-
+      setLoadingMaintenance(true);
+      const response = await fetch(
+        `${API_BASE_URL}/maintenance?assetId=${assetId}`
+      );
       if (response.ok) {
-        const newRecord = await response.json();
-        setMaintenanceRecords((prev) => [newRecord, ...prev]);
-        setShowAddMaintenance(false);
-        // Reset form
-        setMaintenanceFormData({
-          serviceType: "",
-          technician: "",
-          cost: "",
-          status: "Scheduled",
-          date: new Date().toISOString().split("T")[0],
-          description: "",
-          notes: "",
-        });
+        const data = await response.json();
+        setMaintenanceRecords(data);
       }
     } catch (error) {
-      console.error("Error adding maintenance record:", error);
-      alert("Failed to add maintenance record. Please try again.");
+      console.error("Error fetching maintenance records:", error);
+    } finally {
+      setLoadingMaintenance(false);
     }
-  };
+  }, [assetId]);
+
+  // Fetch maintenance records when component mounts or assetId changes
+  useEffect(() => {
+    loadMaintenanceRecords();
+  }, [loadMaintenanceRecords]);
 
   /**
    * Handle deleting maintenance record
@@ -1005,7 +944,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                     {/* Header with Add Button */}
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        Maintenance History for {asset.name}
+                        Maintenance for {asset.name}
                       </h3>
                       <button
                         onClick={() => setShowAddMaintenance(true)}
@@ -1014,21 +953,55 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                         <span className="material-symbols-outlined text-lg">
                           add
                         </span>
-                        Add Maintenance Record
+                        Schedule Maintenance
                       </button>
                     </div>
 
-                    {/* Maintenance Schedule Info */}
-                    {asset.maintenancePeriod && (
-                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <p className="text-sm text-blue-800 dark:text-blue-300">
-                          <span className="font-medium">
-                            Scheduled Maintenance:
-                          </span>{" "}
-                          {asset.maintenancePeriod}
+                    {/* Maintenance Status Card */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {/* Last Maintenance */}
+                      <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium mb-1">
+                          Last Maintenance
+                        </p>
+                        <p className="text-lg font-bold text-green-900 dark:text-green-300">
+                          {asset.lastMaintenanceDate
+                            ? new Date(
+                                asset.lastMaintenanceDate
+                              ).toLocaleDateString()
+                            : "Never"}
                         </p>
                       </div>
-                    )}
+
+                      {/* Next Scheduled */}
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">
+                          Next Scheduled
+                        </p>
+                        <p className="text-lg font-bold text-blue-900 dark:text-blue-300">
+                          {asset.nextScheduledMaintenance
+                            ? new Date(
+                                asset.nextScheduledMaintenance
+                              ).toLocaleDateString()
+                            : "Not Scheduled"}
+                        </p>
+                      </div>
+
+                      {/* Maintenance Status */}
+                      <div className="p-4 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">
+                          Status
+                        </p>
+                        <p className="text-lg font-bold text-gray-900 dark:text-gray-300">
+                          {asset.maintenanceStatus || "Not Scheduled"}
+                        </p>
+                        {asset.maintenancePeriod && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Period: {asset.maintenancePeriod}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Loading State */}
                     {loadingMaintenance && (
@@ -1152,180 +1125,37 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                       </div>
                     )}
 
-                    {/* Add Maintenance Modal */}
+                    {/* Add/Schedule Maintenance Modal */}
                     {showAddMaintenance && (
-                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                      <div className="fixed inset-0 bg-white/80 dark:bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                          <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                              Schedule Maintenance for {asset.name}
+                            </h2>
+                            <button
+                              onClick={() => setShowAddMaintenance(false)}
+                              className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                            >
+                              <span className="material-symbols-outlined">
+                                close
+                              </span>
+                            </button>
+                          </div>
                           <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                Add Maintenance Record
-                              </h2>
-                              <button
-                                onClick={() => setShowAddMaintenance(false)}
-                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                              >
-                                <span className="material-symbols-outlined">
-                                  close
-                                </span>
-                              </button>
-                            </div>
-
-                            <form onSubmit={handleAddMaintenance}>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Date */}
-                                <div className="col-span-1">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Date *
-                                  </label>
-                                  <input
-                                    type="date"
-                                    name="date"
-                                    value={maintenanceFormData.date}
-                                    onChange={handleMaintenanceChange}
-                                    required
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  />
-                                </div>
-
-                                {/* Service Type */}
-                                <div className="col-span-1">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Service Type *
-                                  </label>
-                                  <select
-                                    name="serviceType"
-                                    value={maintenanceFormData.serviceType}
-                                    onChange={handleMaintenanceChange}
-                                    required
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  >
-                                    <option value="">Select type</option>
-                                    <option value="Annual Inspection">
-                                      Annual Inspection
-                                    </option>
-                                    <option value="Repair">Repair</option>
-                                    <option value="Preventative Maintenance">
-                                      Preventative Maintenance
-                                    </option>
-                                    <option value="Emergency Repair">
-                                      Emergency Repair
-                                    </option>
-                                    <option value="Routine Maintenance">
-                                      Routine Maintenance
-                                    </option>
-                                    <option value="Calibration">
-                                      Calibration
-                                    </option>
-                                    <option value="Upgrade">Upgrade</option>
-                                    <option value="Cleaning">Cleaning</option>
-                                    <option value="Other">Other</option>
-                                  </select>
-                                </div>
-
-                                {/* Technician */}
-                                <div className="col-span-1">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Technician *
-                                  </label>
-                                  <input
-                                    type="text"
-                                    name="technician"
-                                    value={maintenanceFormData.technician}
-                                    onChange={handleMaintenanceChange}
-                                    required
-                                    placeholder="Enter technician name"
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  />
-                                </div>
-
-                                {/* Cost */}
-                                <div className="col-span-1">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Cost ($) *
-                                  </label>
-                                  <input
-                                    type="number"
-                                    name="cost"
-                                    value={maintenanceFormData.cost}
-                                    onChange={handleMaintenanceChange}
-                                    required
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  />
-                                </div>
-
-                                {/* Status */}
-                                <div className="col-span-1 md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Status *
-                                  </label>
-                                  <select
-                                    name="status"
-                                    value={maintenanceFormData.status}
-                                    onChange={handleMaintenanceChange}
-                                    required
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  >
-                                    <option value="Scheduled">Scheduled</option>
-                                    <option value="In Progress">
-                                      In Progress
-                                    </option>
-                                    <option value="Completed">Completed</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                  </select>
-                                </div>
-
-                                {/* Description */}
-                                <div className="col-span-1 md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Description
-                                  </label>
-                                  <textarea
-                                    name="description"
-                                    value={maintenanceFormData.description}
-                                    onChange={handleMaintenanceChange}
-                                    rows="3"
-                                    placeholder="Describe the maintenance work..."
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  />
-                                </div>
-
-                                {/* Notes */}
-                                <div className="col-span-1 md:col-span-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Notes
-                                  </label>
-                                  <textarea
-                                    name="notes"
-                                    value={maintenanceFormData.notes}
-                                    onChange={handleMaintenanceChange}
-                                    rows="2"
-                                    placeholder="Additional notes..."
-                                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2"
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Form Actions */}
-                              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <button
-                                  type="button"
-                                  onClick={() => setShowAddMaintenance(false)}
-                                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="submit"
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                  Add Record
-                                </button>
-                              </div>
-                            </form>
+                            <MaintenanceScheduleForm
+                              assetId={asset.id}
+                              onSuccess={() => {
+                                showToastNotification(
+                                  "Maintenance scheduled successfully!",
+                                  "success"
+                                );
+                                setShowAddMaintenance(false);
+                                loadMaintenanceRecords(); // Reload records
+                                refreshData(); // Refresh asset data
+                              }}
+                              onCancel={() => setShowAddMaintenance(false)}
+                            />
                           </div>
                         </div>
                       </div>

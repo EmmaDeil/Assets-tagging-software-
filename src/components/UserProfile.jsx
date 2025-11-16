@@ -129,6 +129,54 @@ const UserProfile = () => {
     loadProfile();
   }, [currentUserId]);
 
+  /**
+   * Reset form to original values (reload profile data)
+   */
+  const handleCancelEdit = async () => {
+    if (!currentUserId) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${API_BASE_URL}/users/profile/${currentUserId}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      const userData = await response.json();
+
+      // Reset form data to original values
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        jobTitle: userData.jobTitle || "",
+        phoneNumber: userData.phoneNumber || "",
+        department: userData.department || "",
+      });
+
+      // Reset notification preferences
+      if (userData.notificationPreferences) {
+        setNotifications({
+          criticalAlerts:
+            userData.notificationPreferences.criticalAlerts ?? true,
+          systemUpdates:
+            userData.notificationPreferences.systemUpdates ?? false,
+          weeklySummary:
+            userData.notificationPreferences.weeklySummary ?? false,
+        });
+      }
+
+      showToast("Changes discarded", "info");
+    } catch (error) {
+      console.error("Error resetting profile:", error);
+      showToast("Failed to reset form", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -578,7 +626,8 @@ const UserProfile = () => {
               <button
                 className="text-sm font-semibold leading-6 text-gray-900 dark:text-white rounded-md px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                 type="button"
-                onClick={() => window.location.reload()}
+                onClick={handleCancelEdit}
+                disabled={loading}
               >
                 Cancel
               </button>

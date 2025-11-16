@@ -19,6 +19,7 @@ const tagRoutes = require('./routes/tags');
 const maintenanceRoutes = require('./routes/maintenance');
 const notificationRoutes = require('./routes/notifications');
 const settingsRoutes = require('./routes/settings');
+const cronRoutes = require('./routes/cron');
 
 // Initialize Express app
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/tags', tagRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/cron', cronRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

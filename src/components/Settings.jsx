@@ -26,7 +26,7 @@ import PermissionsManagement from "./PermissionsManagement";
 
 export default function Settings() {
   // State for settings form
-  const [appName, setAppName] = useState("Q Tag Manager");
+  const [appName, setAppName] = useState("QR Tag Manager");
   const [timezone, setTimezone] = useState("UTC-5");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [apiKey, setApiKey] = useState("Loading...");
@@ -47,7 +47,7 @@ export default function Settings() {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
 
   // Branding state
-  const [companyName, setCompanyName] = useState("Q Tag Manager");
+  const [companyName, setCompanyName] = useState("QR Tag Manager");
   const [primaryColor, setPrimaryColor] = useState("#3B82F6");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
 
@@ -89,7 +89,7 @@ export default function Settings() {
       setTimezone(data.timezone);
       setMaintenanceMode(data.maintenanceMode);
       setApiKey(data.apiKey);
-      setCompanyName(data.companyName || "AssetManager");
+      setCompanyName(data.companyName || "QR Tag Manager");
       setPrimaryColor(data.primaryColor || "#3B82F6");
       setSecondaryColor(data.secondaryColor || "#10B981");
 
