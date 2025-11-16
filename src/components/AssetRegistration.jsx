@@ -845,10 +845,10 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   name="cost"
                   value={formData.cost}
                   onChange={handleChange}
-                  step="0.01"
+                  step="0.0"
                   min="0"
                   className="form-input flex-1 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal transition-all"
-                  placeholder="e.g., 1299.99"
+                  placeholder="e.g., 1000"
                 />
               </label>
             </div>
@@ -1108,79 +1108,109 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
 
       {/* Success Modal */}
       {showSuccessModal && registeredAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md transform transition-all my-auto">
-            <div className="p-4 sm:p-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-                <span className="material-symbols-outlined text-3xl text-green-600 dark:text-green-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 md:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-2xl w-full max-w-[95%] sm:max-w-md md:max-w-lg transform transition-all my-auto max-h-[95vh] overflow-y-auto">
+            {/* Header Section */}
+            <div className="p-4 sm:p-5 md:p-6 text-center">
+              <div className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
+                <span className="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-green-600 dark:text-green-400">
                   check_circle
                 </span>
               </div>
-              <h3 className="mt-3 text-xl font-bold text-gray-900 dark:text-white">
+              <h3 className="mt-2 sm:mt-3 text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 Asset Registered Successfully!
               </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 QR code generated for your new asset.
               </p>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 border-y border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col items-center gap-3">
-                <div id="success-qr-code" className="bg-white p-3 rounded-lg">
+            {/* QR Code Section */}
+            <div className="bg-gray-50 dark:bg-gray-900 p-4 sm:p-5 md:p-6 border-y border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col items-center gap-3 sm:gap-4">
+                <div
+                  id="success-qr-code"
+                  className="bg-white p-2 sm:p-3 rounded-lg shadow-sm"
+                >
                   {registeredAsset?.id ? (
-                    <QRCode value={registeredAsset.id} size={180} />
+                    <QRCode
+                      value={registeredAsset.id}
+                      size={
+                        window.innerWidth < 640
+                          ? 140
+                          : window.innerWidth < 768
+                          ? 160
+                          : 180
+                      }
+                    />
                   ) : (
-                    <div className="w-[180px] h-[180px] flex items-center justify-center bg-gray-100 text-gray-400">
+                    <div className="w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] md:w-[180px] md:h-[180px] flex items-center justify-center bg-gray-100 text-gray-400 text-xs sm:text-sm">
                       No QR Code
                     </div>
                   )}
                 </div>
-                <div className="text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider">
-                    Asset Name
-                  </p>
-                  <p className="text-base font-semibold text-gray-800 dark:text-gray-100">
-                    {registeredAsset?.name || "N/A"}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1.5">
-                    Tag ID
-                  </p>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-300">
-                    {registeredAsset?.id || "N/A"}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider mt-1.5">
-                    Location
-                  </p>
-                  <p className="font-mono text-sm text-gray-600 dark:text-gray-300">
-                    {registeredAsset?.location || "N/A"}
-                  </p>
+
+                {/* Asset Details */}
+                <div className="text-center w-full px-2">
+                  <div className="mb-2 sm:mb-3">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider">
+                      Asset Name
+                    </p>
+                    <p className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 dark:text-gray-100 break-words">
+                      {registeredAsset?.name || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="mb-2 sm:mb-3">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider">
+                      Tag ID
+                    </p>
+                    <p className="font-mono text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 break-all">
+                      {registeredAsset?.id || "N/A"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold tracking-wider">
+                      Location
+                    </p>
+                    <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 break-words">
+                      {registeredAsset?.location || "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 p-4 sm:p-5">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 p-3 sm:p-4 md:p-5">
               <button
                 onClick={handlePrint}
-                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 sm:h-10 md:h-11 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30 transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">print</span>
-                Print
+                <span className="material-symbols-outlined text-base sm:text-lg md:text-xl">
+                  print
+                </span>
+                <span className="hidden xs:inline">Print</span>
+                <span className="xs:hidden">Print</span>
               </button>
               <button
                 onClick={handleDownload}
-                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-2 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 sm:h-10 md:h-11 bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600/20 dark:hover:bg-blue-600/30 transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">
+                <span className="material-symbols-outlined text-base sm:text-lg md:text-xl">
                   download
                 </span>
-                Download
+                <span className="hidden xs:inline">Download</span>
+                <span className="xs:hidden">Download</span>
               </button>
             </div>
 
-            <div className="px-4 sm:px-5 pb-4">
+            {/* Close Button */}
+            <div className="px-3 sm:px-4 md:px-5 pb-3 sm:pb-4 md:pb-5">
               <button
                 onClick={handleCloseModal}
-                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-600"
+                className="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 sm:h-10 md:h-11 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 text-xs sm:text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Close
               </button>

@@ -926,6 +926,30 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                       </button>
                     </div>
 
+                    {/* Intelligent Scheduling Info Banner */}
+                    {asset.maintenancePeriod &&
+                      asset.maintenancePeriod !== "As Needed" && (
+                        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-xl mt-0.5">
+                              auto_awesome
+                            </span>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">
+                                Intelligent Scheduling Active
+                              </h4>
+                              <p className="text-sm text-blue-800 dark:text-blue-400">
+                                This asset has a{" "}
+                                <strong>{asset.maintenancePeriod}</strong>{" "}
+                                maintenance schedule. When you complete a
+                                maintenance task, the system automatically
+                                schedules the next one based on this period.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                     {/* Maintenance Status Card */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                       {/* Last Maintenance */}
@@ -993,10 +1017,16 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                   Service Type
                                 </th>
                                 <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  Date
+                                  Scheduled Date
+                                </th>
+                                <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Completed Date
                                 </th>
                                 <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Status
+                                </th>
+                                <th className="p-4 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Next Scheduled
                                 </th>
                               </tr>
                             </thead>
@@ -1018,6 +1048,13 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                         record.scheduledDate || record.date
                                       ).toLocaleDateString()}
                                     </td>
+                                    <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
+                                      {record.completedDate
+                                        ? new Date(
+                                            record.completedDate
+                                          ).toLocaleDateString()
+                                        : "-"}
+                                    </td>
                                     <td className="p-4">
                                       <span
                                         className={`inline-flex items-center gap-1.5 rounded-full ${statusBadge.bg} px-2 py-1 text-xs font-medium ${statusBadge.text}`}
@@ -1027,6 +1064,26 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                                         ></span>
                                         {record.status}
                                       </span>
+                                    </td>
+                                    <td className="p-4 text-sm">
+                                      {record.nextMaintenanceDate ? (
+                                        <span className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+                                          <span className="material-symbols-outlined text-sm">
+                                            event
+                                          </span>
+                                          {new Date(
+                                            record.nextMaintenanceDate
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      ) : record.status === "Completed" ? (
+                                        <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                          Auto-generated
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-400 dark:text-gray-500">
+                                          -
+                                        </span>
+                                      )}
                                     </td>
                                   </tr>
                                 );

@@ -628,10 +628,10 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                   name="cost"
                   value={formData.cost}
                   onChange={handleChange}
-                  step="0.01"
+                  step="0.0"
                   min="0"
                   className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
-                  placeholder="e.g., 1299.99"
+                  placeholder="e.g., 1000"
                 />
               </label>
 

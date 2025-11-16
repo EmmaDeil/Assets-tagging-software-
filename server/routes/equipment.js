@@ -11,12 +11,88 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Equipment = require('../models/Equipment');
+const Maintenance = require('../models/Maintenance');
 const Activity = require('../models/Activity');
 const {
   createNewAssetNotification,
   createStatusChangeNotification,
   createAssignmentNotification,
 } = require('../utils/notificationHelper');
+
+/**
+ * Helper function to calculate next maintenance date based on period
+ */
+function calculateNextMaintenanceDate(lastDate, period) {
+  if (!period || period === 'As Needed') return null;
+  
+  const date = new Date(lastDate);
+  
+  switch(period) {
+    case 'Weekly':
+      date.setDate(date.getDate() + 7);
+      break;
+    case 'Monthly':
+      date.setMonth(date.getMonth() + 1);
+      break;
+    case 'Every 3 Months':
+    case 'Quarterly':
+      date.setMonth(date.getMonth() + 3);
+      break;
+    case 'Every 6 Months':
+    case 'Bi-annually':
+      date.setMonth(date.getMonth() + 6);
+      break;
+    case 'Annually':
+      date.setFullYear(date.getFullYear() + 1);
+      break;
+    case 'Every 2 Years':
+      date.setFullYear(date.getFullYear() + 2);
+      break;
+    default:
+      return null;
+  }
+  
+  return date;
+}
+
+/**
+ * Helper function to update asset maintenance status dynamically
+ */
+async function updateAssetMaintenanceStatus(assetId) {
+  try {
+    const asset = await Equipment.findOne({ id: assetId });
+    if (!asset) return;
+
+    const now = new Date();
+    const nextMaintenance = asset.nextScheduledMaintenance;
+
+    if (!nextMaintenance) {
+      asset.maintenanceStatus = 'Not Scheduled';
+    } else {
+      const daysUntilMaintenance = Math.ceil((nextMaintenance - now) / (1000 * 60 * 60 * 24));
+      
+      // Check for in-progress maintenance
+      const inProgressMaintenance = await Maintenance.findOne({
+        assetId: assetId,
+        status: 'In Progress'
+      });
+
+      if (inProgressMaintenance) {
+        asset.maintenanceStatus = 'In Progress';
+      } else if (daysUntilMaintenance < 0) {
+        asset.maintenanceStatus = 'Overdue';
+      } else if (daysUntilMaintenance <= 7) {
+        asset.maintenanceStatus = 'Due Soon';
+      } else {
+        asset.maintenanceStatus = 'Up to Date';
+      }
+    }
+
+    await asset.save();
+  } catch (error) {
+    console.error('Error updating asset maintenance status:', error);
+  }
+}
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -96,16 +172,48 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const equipment = new Equipment(req.body);
+    // Remove maintenanceStatus from req.body if it exists (will be calculated dynamically)
+    const { maintenanceStatus, ...equipmentData } = req.body;
+    const equipment = new Equipment(equipmentData);
+    
+    // If asset has a maintenance period, calculate and set next scheduled maintenance
+    if (equipment.maintenancePeriod && equipment.maintenancePeriod !== 'As Needed') {
+      const nextDate = calculateNextMaintenanceDate(new Date(), equipment.maintenancePeriod);
+      equipment.nextScheduledMaintenance = nextDate;
+    }
+    
     await equipment.save();
 
-    // Log activity - use admin user
+    // Create initial maintenance schedule if maintenance period is set
+    if (equipment.maintenancePeriod && equipment.maintenancePeriod !== 'As Needed' && equipment.nextScheduledMaintenance) {
+      const initialMaintenance = new Maintenance({
+        assetId: equipment.id,
+        assetName: equipment.name,
+        date: equipment.nextScheduledMaintenance,
+        scheduledDate: equipment.nextScheduledMaintenance,
+        serviceType: 'Preventative Maintenance',
+        technician: 'To Be Assigned',
+        cost: 0,
+        status: 'Scheduled',
+        priority: 'Medium',
+        description: `Initial ${equipment.maintenancePeriod} maintenance schedule for ${equipment.name}`,
+      });
+      
+      await initialMaintenance.save();
+      console.log(`Initial maintenance scheduled for ${equipment.name} on ${equipment.nextScheduledMaintenance}`);
+      
+      // Update maintenance status dynamically based on scheduled date
+      await updateAssetMaintenanceStatus(equipment.id);
+    }
+
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Added',
       actionType: 'Added',
-      user: 'David Deil', // Admin user
+      user: userName,
       icon: '📦',
       date: 'Just now',
       timestamp: Date.now(),
@@ -147,13 +255,14 @@ router.put('/:id', async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Updated',
       actionType: 'Updated',
-      user: 'David Deil', // Admin user
+      user: userName,
       icon: '✏️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -191,13 +300,14 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Equipment not found' });
     }
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Deleted',
       actionType: 'Deleted',
-      user: 'David Deil', // Admin user
+      user: userName,
       icon: '🗑️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -282,14 +392,15 @@ router.post('/:id/upload', upload.single('document'), async (req, res) => {
     // Clean up physical file after saving to database
     fs.unlinkSync(req.file.path);
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Document Uploaded',
       actionType: 'Updated',
       details: `Uploaded: ${req.file.originalname}`,
-      user: 'David Deil', // Admin user
+      user: userName,
       icon: '📄',
       date: 'Just now',
       timestamp: Date.now(),
@@ -349,14 +460,15 @@ router.delete('/:id/document/:fileId', async (req, res) => {
     equipment.lastModified = new Date();
     await equipment.save();
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Document Deleted',
       actionType: 'Updated',
       details: `Deleted: ${file.name}`,
-      user: 'David Deil', // Admin user
+      user: userName,
       icon: '🗑️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -434,13 +546,16 @@ router.post('/:id/notes', async (req, res) => {
       equipment.notesHistory = [];
     }
 
+    // Get dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
+
     // Create new note
     const newNote = {
       content: content.trim(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: 'Admin', // TODO: Get from authenticated user
-      updatedBy: 'Admin',
+      createdBy: userName,
+      updatedBy: userName,
     };
 
     equipment.notesHistory.push(newNote);
@@ -448,14 +563,15 @@ router.post('/:id/notes', async (req, res) => {
 
     await equipment.save();
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const activityUserName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Note Added',
       actionType: 'Updated',
       details: `Added a new note`,
-      user: 'David Deil',
+      user: activityUserName,
       icon: '📝',
       date: 'Just now',
       timestamp: Date.now(),
@@ -499,22 +615,26 @@ router.put('/:id/notes/:noteId', async (req, res) => {
       return res.status(404).json({ message: 'Note not found' });
     }
 
+    // Get dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
+
     // Update note
     note.content = content.trim();
     note.updatedAt = new Date();
-    note.updatedBy = 'Admin'; // TODO: Get from authenticated user
+    note.updatedBy = userName;
     equipment.lastModified = new Date();
 
     await equipment.save();
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const activityUserName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Note Updated',
       actionType: 'Updated',
       details: `Updated a note`,
-      user: 'David Deil',
+      user: activityUserName,
       icon: '✏️',
       date: 'Just now',
       timestamp: Date.now(),
@@ -559,14 +679,15 @@ router.delete('/:id/notes/:noteId', async (req, res) => {
 
     await equipment.save();
 
-    // Log activity
+    // Log activity - use dynamic user from request or default to System
+    const userName = req.body.currentUser || req.body.user || 'System';
     const activity = new Activity({
       assetName: equipment.name,
       assetId: equipment.id,
       action: 'Note Deleted',
       actionType: 'Updated',
       details: `Deleted a note`,
-      user: 'David Deil',
+      user: userName,
       icon: '🗑️',
       date: 'Just now',
       timestamp: Date.now(),
