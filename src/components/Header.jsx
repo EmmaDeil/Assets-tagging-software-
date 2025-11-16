@@ -21,6 +21,7 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import { NotificationContext } from "../context/NotificationContext";
+import { useAuth } from "../context/AuthContext";
 import API_BASE_URL from "../config/api";
 
 export default function Header({ activePage = "Dashboard", onNavigate }) {
@@ -34,6 +35,9 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
     {}
   );
   const [profileDropdownStyle, setProfileDropdownStyle] = useState({});
+
+  // Access auth context
+  const { logout } = useAuth();
 
   // Access notification context
   const {
@@ -585,10 +589,17 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
                   App Settings
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowUserMenu(false);
-                    // Add logout logic here
-                    console.log("Logout clicked");
+                    try {
+                      await logout();
+                      // Redirect to login page
+                      window.location.href = "/login";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      // Force redirect even if logout fails
+                      window.location.href = "/login";
+                    }
                   }}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                 >

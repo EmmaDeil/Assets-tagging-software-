@@ -12,6 +12,7 @@ const path = require('path');
 const connectDB = require('./config/database');
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const equipmentRoutes = require('./routes/equipment');
 const activityRoutes = require('./routes/activities');
 const userRoutes = require('./routes/users');
@@ -68,10 +69,11 @@ if (NODE_ENV === 'development') {
   });
 }
 
-// Apply maintenance mode middleware to all API routes except settings GET
+// Apply maintenance mode middleware to all API routes except settings GET and auth routes
 app.use('/api', checkMaintenanceMode);
 
 // API Routes
+app.use('/api/auth', authRoutes); // Authentication routes (public)
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/users', userRoutes);

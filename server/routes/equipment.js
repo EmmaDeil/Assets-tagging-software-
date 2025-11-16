@@ -131,6 +131,33 @@ const upload = multer({
 });
 
 /**
+ * @route   GET /api/equipment/departments/list
+ * @desc    Get unique list of departments from equipment and users
+ * @access  Public
+ */
+router.get('/departments/list', async (req, res) => {
+  try {
+    const User = require('../models/User');
+    
+    // Get unique departments from equipment
+    const equipmentDepartments = await Equipment.distinct('department');
+    
+    // Get unique departments from users
+    const userDepartments = await User.distinct('department');
+    
+    // Combine and remove duplicates
+    const allDepartments = [...new Set([...equipmentDepartments, ...userDepartments])]
+      .filter(dept => dept && dept.trim() !== '') // Remove empty strings
+      .sort(); // Sort alphabetically
+    
+    res.json(allDepartments);
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
  * @route   GET /api/equipment
  * @desc    Get all equipment/assets
  * @access  Public

@@ -35,10 +35,20 @@
 import "./App.css";
 import React, { useState, useContext } from "react";
 import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import {
   EquipmentProvider,
   EquipmentContext,
 } from "./context/EquipmentContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
 import AssetsManagement from "./components/AssetsManagement";
@@ -392,10 +402,13 @@ function AppContent() {
  * App component (Root Component)
  *
  * Entry point of the application that provides global context.
- * Wraps AppContent with EquipmentProvider and NotificationProvider to make
- * equipment/asset data and notifications available to all child components.
+ * Wraps AppContent with AuthProvider, EquipmentProvider and NotificationProvider
+ * to make authentication, equipment/asset data and notifications available
+ * to all child components.
  *
  * Context Provided:
+ * - Authentication state and user data
+ * - Login/logout/register functions
  * - Equipment/Asset data (items array)
  * - Recent activity logs
  * - Functions to add, update, delete equipment
@@ -406,11 +419,29 @@ function AppContent() {
  */
 function App() {
   return (
-    <EquipmentProvider>
-      <NotificationProvider>
-        <AppContent />
-      </NotificationProvider>
-    </EquipmentProvider>
+    <Router>
+      <AuthProvider>
+        <EquipmentProvider>
+          <NotificationProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+
+              {/* Protected Routes */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppContent />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </NotificationProvider>
+        </EquipmentProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
