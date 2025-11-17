@@ -131,9 +131,17 @@ app.use((err, req, res, next) => {
 
 // Start server
 const server = app.listen(PORT, () => {
+  const baseUrl = NODE_ENV === 'production' 
+    ? (process.env.RENDER_EXTERNAL_URL || `https://assets-tagging-software-backend.onrender.com`)
+    : `http://localhost:${PORT}`;
+  
   console.log(`\n🚀 Server running in ${NODE_ENV} mode on port ${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}/api`);
-  console.log(`💚 Health: http://localhost:${PORT}/api/health\n`);
+  console.log(`📡 API: ${baseUrl}/api`);
+  console.log(`💚 Health: ${baseUrl}/api/health\n`);
+  
+  if (NODE_ENV === 'production') {
+    console.log(`🌐 Your API is publicly accessible at: ${baseUrl}`);
+  }
 });
 
 // Graceful shutdown
