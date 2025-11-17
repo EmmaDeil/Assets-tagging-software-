@@ -132,21 +132,28 @@ const upload = multer({
 
 /**
  * @route   GET /api/equipment/departments/list
- * @desc    Get unique list of departments from equipment and users
+ * @desc    Get unique list of departments from tags, equipment and users
  * @access  Public
  */
 router.get('/departments/list', async (req, res) => {
   try {
+    const Tag = require('../models/Tag');
     const User = require('../models/User');
     
-    // Get unique departments from equipment
+    // Get departments from Tag collection (primary source)
+    const departmentTags = await Tag.find({ category: 'Department' })
+      .select('name')
+      .sort({ name: 1 });
+    const tagDepartments = departmentTags.map(tag => tag.name);
+    
+    // Get unique departments from equipment (for backwards compatibility)
     const equipmentDepartments = await Equipment.distinct('department');
     
-    // Get unique departments from users
+    // Get unique departments from users (for backwards compatibility)
     const userDepartments = await User.distinct('department');
     
-    // Combine and remove duplicates
-    const allDepartments = [...new Set([...equipmentDepartments, ...userDepartments])]
+    // Combine all sources and remove duplicates
+    const allDepartments = [...new Set([...tagDepartments, ...equipmentDepartments, ...userDepartments])]
       .filter(dept => dept && dept.trim() !== '') // Remove empty strings
       .sort(); // Sort alphabetically
     

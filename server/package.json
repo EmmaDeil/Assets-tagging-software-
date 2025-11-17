@@ -14,6 +14,10 @@
     "dev": "node server.js",
     "publish": "node server.js",
     "seed": "node seed.js",
+    "seed:dev": "node scripts/seedDatabase.js dev",
+    "seed:prod": "node scripts/seedDatabase.js prod",
+    "seed:both": "node scripts/seedDatabase.js both",
+    "seed:clear": "node scripts/seedDatabase.js dev --clear",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
