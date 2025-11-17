@@ -26,7 +26,7 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists',
+        message: 'An account with this email already exists. Please login or use a different email.',
       });
     }
 
@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists',
+        message: 'An account with this email already exists. Please login or use a different email.',
       });
     }
 
@@ -104,7 +104,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        message: 'No account found with this email. Please sign up to create an account.',
       });
     }
 
@@ -122,7 +122,7 @@ router.post('/login', async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        message: 'Email exists but password is incorrect. Please try again or reset your password.',
       });
     }
 
