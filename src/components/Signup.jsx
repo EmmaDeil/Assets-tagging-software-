@@ -46,7 +46,6 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (error) setError("");
   };
 
@@ -75,7 +74,7 @@ const Signup = () => {
         formData.role,
         formData.department
       );
-      navigate("/"); // Redirect to dashboard after successful registration
+      navigate("/");
     } catch (err) {
       setError(err.message || "Failed to create account. Please try again.");
     } finally {
@@ -84,299 +83,278 @@ const Signup = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="flex h-full w-full">
-        <main className="flex min-h-screen w-full flex-col lg:flex-row">
-          {/* Left side - Image */}
-          <div className="relative hidden lg:flex lg:w-1/2 xl:w-3/5">
-            <AnimatedContent
-              direction="horizontal"
-              distance={200}
-              duration={1.2}
-              scale={1.1}
-              threshold={0}
-            >
-              <div className="relative h-full w-full">
-                <div
-                  className="absolute inset-0 h-full w-full bg-cover bg-center bg-no-repeat"
-                  style={{
-                    backgroundImage: 'url("/auth-background.png")',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/60 to-blue-900/80"></div>
-                  <div className="absolute inset-0 flex flex-col items-start justify-end p-12 xl:p-16">
-                    <div className="max-w-xl space-y-6">
-                      <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-                        Start Your Journey with AssetFlow
-                      </h1>
-                      <p className="text-lg xl:text-xl text-blue-100">
-                        Join thousands of organizations managing their assets
-                        efficiently with QR technology.
-                      </p>
-                      <div className="grid grid-cols-2 gap-4 pt-4">
-                        <div className="flex items-start gap-3">
-                          <span className="material-symbols-outlined text-white text-2xl">
-                            check_circle
-                          </span>
-                          <div>
-                            <p className="text-white font-semibold">
-                              Easy Setup
-                            </p>
-                            <p className="text-blue-100 text-sm">
-                              Get started in minutes
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <span className="material-symbols-outlined text-white text-2xl">
-                            security
-                          </span>
-                          <div>
-                            <p className="text-white font-semibold">
-                              Secure Access
-                            </p>
-                            <p className="text-blue-100 text-sm">
-                              Enterprise-grade security
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </AnimatedContent>
-          </div>
+    <div className="min-h-screen w-full flex bg-slate-50 dark:bg-slate-900">
+      {/* Left side - Image Panel (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
+        <AnimatedContent
+          direction="horizontal"
+          distance={200}
+          duration={1.2}
+          scale={1.1}
+          threshold={0}
+        >
+          <div className="w-full h-full relative">
+            {/* Background Image */}
+            <img
+              src="/auth-background.png"
+              alt="AssetFlow Background"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-700/85 to-blue-900/90"></div>
 
-          {/* Right side - Signup Form */}
-          <div className="flex w-full lg:w-1/2 xl:w-2/5 flex-col items-center justify-center bg-white dark:bg-slate-900 py-8 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-            <div className="flex w-full max-w-md flex-col gap-6 sm:gap-8">
-              {/* Header */}
-              <div className="flex flex-col gap-4 sm:gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-primary/10">
-                    <svg
-                      aria-hidden="true"
-                      className="h-7 w-7 sm:h-8 sm:w-8 text-primary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 4H4m0 0v4m0-4 5 5m7-5h4m0 0v4m0-4-5 5M8 20H4m0 0v-4m0 4 5-5m7 5h4m0 0v-4m0 4-5-5"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      ></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50">
-                      AssetFlow
-                    </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      QR Tag Manager
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
-                    Create Account
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                    Get started with AssetFlow and manage your assets
-                    efficiently.
-                  </p>
-                </div>
-              </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="w-full p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 rounded-r-lg shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl mt-0.5">
-                      error
-                    </span>
-                    <p className="text-sm text-red-700 dark:text-red-300 flex-1">
-                      {error}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Signup Form */}
-              <form
-                className="flex w-full flex-col gap-4"
-                onSubmit={handleSubmit}
-              >
-                {/* Name and Email in Grid for Desktop */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Name Field */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                      Full Name
-                    </label>
-                    <input
-                      className="form-input w-full rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-primary h-11 sm:h-12 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-sm sm:text-base transition-all duration-200"
-                      placeholder="John Doe"
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {/* Email Field */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                      Email Address
-                    </label>
-                    <input
-                      className="form-input w-full rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-primary h-11 sm:h-12 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 text-sm sm:text-base transition-all duration-200"
-                      placeholder="your.email@company.com"
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      disabled={loading}
-                    />
-                  </div>
+            {/* Content */}
+            <div className="relative h-full flex flex-col justify-end p-8 lg:p-12 xl:p-16">
+              <div className="max-w-lg space-y-6">
+                <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                  <span className="material-symbols-outlined text-white text-2xl">
+                    qr_code_scanner
+                  </span>
+                  <span className="text-white font-semibold">
+                    AssetFlow QR Manager
+                  </span>
                 </div>
 
-                {/* Department Field */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                    Department
-                  </label>
-                  <select
-                    className="form-input w-full rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-primary h-11 sm:h-12 px-4 text-sm sm:text-base transition-all duration-200"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleChange}
-                    disabled={loading || loadingDepartments}
-                  >
-                    <option value="">Select your department</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
+                  Start Your Journey with AssetFlow
+                </h1>
 
-                {/* Password Fields in Grid for Desktop */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Password Field */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        className="form-input w-full rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-primary h-11 sm:h-12 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 pr-12 text-sm sm:text-base transition-all duration-200"
-                        placeholder="Min. 6 characters"
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                      />
-                      <button
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        disabled={loading}
-                      >
-                        <span className="material-symbols-outlined text-xl">
-                          {showPassword ? "visibility_off" : "visibility"}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Confirm Password Field */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        className="form-input w-full rounded-lg text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 focus:border-primary h-11 sm:h-12 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-4 pr-12 text-sm sm:text-base transition-all duration-200"
-                        placeholder="Re-enter password"
-                        type={showConfirmPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                        disabled={loading}
-                      />
-                      <button
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        disabled={loading}
-                      >
-                        <span className="material-symbols-outlined text-xl">
-                          {showConfirmPassword
-                            ? "visibility_off"
-                            : "visibility"}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex w-full flex-col gap-4 pt-2">
-                  <button
-                    className="flex items-center justify-center gap-2 rounded-lg bg-primary h-11 sm:h-12 text-sm sm:text-base font-bold text-white shadow-md hover:shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <span className="material-symbols-outlined animate-spin">
-                          progress_activity
-                        </span>
-                        Creating Account...
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined">
-                          person_add
-                        </span>
-                        Create Account
-                      </>
-                    )}
-                  </button>
-                  <p className="text-center text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                    Already have an account?{" "}
-                    <Link
-                      className="font-semibold text-primary hover:text-primary/80 hover:underline transition-all"
-                      to="/login"
-                    >
-                      Sign In
-                    </Link>
-                  </p>
-                </div>
-              </form>
-
-              {/* Footer */}
-              <footer className="w-full pt-6 sm:pt-8 border-t border-slate-200 dark:border-slate-800">
-                <p className="text-xs sm:text-sm text-center text-slate-500 dark:text-slate-500">
-                  © {new Date().getFullYear()} AssetFlow. All rights reserved.
+                <p className="text-base lg:text-lg text-blue-50">
+                  Join thousands of organizations managing their assets
+                  efficiently with QR technology.
                 </p>
-              </footer>
+
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <div className="flex flex-col gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <span className="material-symbols-outlined text-white text-2xl">
+                      check_circle
+                    </span>
+                    <div>
+                      <p className="text-white font-semibold">Easy Setup</p>
+                      <p className="text-blue-100 text-sm">
+                        Get started in minutes
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <span className="material-symbols-outlined text-white text-2xl">
+                      security
+                    </span>
+                    <div>
+                      <p className="text-white font-semibold">Secure Access</p>
+                      <p className="text-blue-100 text-sm">
+                        Enterprise-grade security
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </main>
+        </AnimatedContent>
+      </div>
+
+      {/* Right side - Signup Form */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-slate-900 overflow-y-auto">
+        <div className="w-full max-w-md space-y-8 my-8">
+          {/* Logo & Title */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4">
+              <span className="material-symbols-outlined text-white text-3xl">
+                qr_code_scanner
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              Create Account
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Get started with AssetFlow today
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400">
+                  error
+                </span>
+                <p className="text-sm text-red-800 dark:text-red-200 flex-1">
+                  {error}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Signup Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                required
+                disabled={loading}
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                placeholder="John Doe"
+              />
+            </div>
+
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Email Address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                disabled={loading}
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                placeholder="you@company.com"
+              />
+            </div>
+
+            {/* Department Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="department"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Department
+              </label>
+              <select
+                id="department"
+                name="department"
+                disabled={loading || loadingDepartments}
+                value={formData.department}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <option value="">Select your department</option>
+                {departments.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  disabled={loading}
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  placeholder="Min. 6 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  disabled={loading}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 pr-12 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  placeholder="Re-enter password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showConfirmPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              {loading ? "Creating Account..." : "Create Account"}
+            </button>
+          </form>
+
+          {/* Sign In Link */}
+          <div className="text-center">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-8 border-t border-slate-200 dark:border-slate-700">
+            <p className="text-xs text-slate-500 dark:text-slate-500">
+              © {new Date().getFullYear()} AssetFlow. All rights reserved.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

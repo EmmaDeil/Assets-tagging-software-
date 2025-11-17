@@ -20,7 +20,6 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear error when user starts typing
     if (error) setError("");
   };
 
@@ -31,7 +30,7 @@ const Login = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate("/"); // Redirect to dashboard after successful login
+      navigate("/");
     } catch (err) {
       setError(
         err.message || "Failed to login. Please check your credentials."
@@ -61,98 +60,94 @@ const Login = () => {
             />
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-700/85 to-blue-900/90"></div>
-            
+
             {/* Content */}
             <div className="relative h-full flex flex-col justify-end p-8 lg:p-12 xl:p-16">
               <div className="max-w-lg space-y-6">
                 <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                  <span className="material-symbols-outlined text-white text-2xl">qr_code_scanner</span>
-                  <span className="text-white font-semibold">AssetFlow QR Manager</span>
+                  <span className="material-symbols-outlined text-white text-2xl">
+                    qr_code_scanner
+                  </span>
+                  <span className="text-white font-semibold">
+                    AssetFlow QR Manager
+                  </span>
                 </div>
-                
+
                 <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
                   Welcome Back to AssetFlow
                 </h1>
-                
+
                 <p className="text-base lg:text-lg text-blue-50">
-                  Manage your assets efficiently with our comprehensive QR tag management system.
+                  Manage your assets efficiently with our comprehensive QR tag
+                  management system.
                 </p>
-                
+
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                    <span className="material-symbols-outlined text-white text-xl">verified</span>
-                    <span className="text-white text-sm font-medium">Secure</span>
+                    <span className="material-symbols-outlined text-white text-xl">
+                      verified
+                    </span>
+                    <span className="text-white text-sm font-medium">
+                      Secure
+                    </span>
                   </div>
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-white">
-                            speed
-                          </span>
-                          <span className="text-white font-medium">Fast</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-white">
-                            device_hub
-                          </span>
-                          <span className="text-white font-medium">
-                            Reliable
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                    <span className="material-symbols-outlined text-white text-xl">
+                      speed
+                    </span>
+                    <span className="text-white text-sm font-medium">Fast</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                    <span className="material-symbols-outlined text-white text-xl">
+                      devices
+                    </span>
+                    <span className="text-white text-sm font-medium">
+                      Reliable
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                    <span className="material-symbols-outlined text-white text-xl">
+                      cloud_done
+                    </span>
+                    <span className="text-white text-sm font-medium">
+                      Cloud-based
+                    </span>
                   </div>
                 </div>
               </div>
-            </AnimatedContent>
+            </div>
           </div>
+        </AnimatedContent>
+      </div>
 
-          {/* Right side - Login Form */}
-          <div className="flex w-full lg:w-1/2 xl:w-2/5 flex-col items-center justify-center bg-white dark:bg-slate-900 py-8 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-            <div className="flex w-full max-w-md flex-col gap-6 sm:gap-8">
-              {/* Header */}
-              <div className="flex flex-col gap-4 sm:gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-primary/10">
-                    <svg
-                      aria-hidden="true"
-                      className="h-7 w-7 sm:h-8 sm:w-8 text-primary"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 4H4m0 0v4m0-4 5 5m7-5h4m0 0v4m0-4-5 5M8 20H4m0 0v-4m0 4 5-5m7 5h4m0 0v-4m0 4-5-5"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      ></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50">
-                      AssetFlow
-                    </h1>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                      QR Tag Manager
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
-                    Welcome Back
-                  </h2>
-                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-                    Sign in to access your dashboard and manage assets.
-                  </p>
-                </div>
-              </div>
+      {/* Right side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white dark:bg-slate-900">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo & Title */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4">
+              <span className="material-symbols-outlined text-white text-3xl">
+                qr_code_scanner
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              Welcome Back
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Sign in to your AssetFlow account
+            </p>
+          </div>
 
           {/* Error Alert */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
-                <p className="text-sm text-red-800 dark:text-red-200 flex-1">{error}</p>
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400">
+                  error
+                </span>
+                <p className="text-sm text-red-800 dark:text-red-200 flex-1">
+                  {error}
+                </p>
               </div>
             </div>
           )}
@@ -161,7 +156,10 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
                 Email Address
               </label>
               <input
@@ -181,7 +179,10 @@ const Login = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
                   Password
                 </label>
                 <Link
