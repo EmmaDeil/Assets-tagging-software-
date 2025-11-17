@@ -10,17 +10,35 @@ const mongoose = require('mongoose');
 /**
  * Connect to MongoDB database
  * 
- * Uses connection string from environment variable MONGODB_URI.
- * Logs connection status and handles connection errors.
+ * Uses environment-specific connection string:
+ * - Development: MONGODB_URI_DEV (assetflow_dev database)
+ * - Production: MONGODB_URI_PROD (assetflow_prod database)
+ * 
+ * Falls back to MONGODB_URI if environment-specific variable not set.
  * 
  * @returns {Promise<void>}
  */
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    // Determine which MongoDB URI to use based on environment
+    const environment = process.env.NODE_ENV || 'development';
+    let mongoURI;
+
+    if (environment === 'production') {
+      mongoURI = process.env.MONGODB_URI_PROD || process.env.MONGODB_URI;
+    } else {
+      mongoURI = process.env.MONGODB_URI_DEV || process.env.MONGODB_URI;
+    }
+
+    if (!mongoURI) {
+      throw new Error('MongoDB URI not defined in environment variables');
+    }
+
+    const conn = await mongoose.connect(mongoURI);
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📂 Database: ${conn.connection.name}`);
+    console.log(`🌍 Environment: ${environment}`);
   } catch (error) {
     console.error(`❌ Error connecting to MongoDB: ${error.message}`);
     process.exit(1); // Exit with failure
