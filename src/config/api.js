@@ -9,7 +9,19 @@
  */
 
 // Get API URL from environment or default to localhost for development
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Export for easier imports
+// export default API_BASE_URL;
+
+// Production URL (set via VITE_API_BASE_URL in .env.production)
+const PROD_URL = "https://assets-tagging-software-backend.onrender.com/api";
+
+// Local Development URL
+const DEV_URL = "http://localhost:5000/api";
+
+// Get API URL from environment variable, falling back to development default
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || DEV_URL;
 
 // Export for easier imports
 export default API_BASE_URL;
