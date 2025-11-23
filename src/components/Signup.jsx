@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import AnimatedContent from "./AnimatedContent";
+import API_BASE_URL from "../config/api";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Signup = () => {
     const fetchDepartments = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/equipment/departments/list"
+          `${API_BASE_URL}/equipment/departments/list`
         );
         setDepartments(response.data);
       } catch (error) {

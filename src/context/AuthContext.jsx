@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 
 
 const AuthContext = createContext();
@@ -37,8 +38,7 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       if (token) {
         try {
-          // const response = await axios.get("http://localhost:5000/api/auth/me");
-          const response = await axios.get("https://assets-tagging-software-backend.onrender.com/api/auth/me");
+          const response = await axios.get(`${API_BASE_URL}/auth/me`);
           setUser(response.data.user);
         } catch (error) {
           console.error("Failed to load user:", error);
@@ -59,8 +59,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(
-        // "http://localhost:5000/api/auth/login",
-        "https://assets-tagging-software-backend.onrender.com/api/auth/login",
+        `${API_BASE_URL}/auth/login`,
         {
           email,
           password,
@@ -91,8 +90,7 @@ export const AuthProvider = ({ children }) => {
   ) => {
     try {
       const response = await axios.post(
-        // "http://localhost:5000/api/auth/register",
-        "https://assets-tagging-software-backend.onrender.com/api/auth/register",
+        `${API_BASE_URL}/auth/register`,
         {
           name,
           email,
@@ -122,8 +120,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Call logout endpoint (optional)
       if (token) {
-        // await axios.post("http://localhost:5000/api/auth/logout");
-        await axios.post("https://assets-tagging-software-backend.onrender.com/api/auth/logout");
+        await axios.post(`${API_BASE_URL}/auth/logout`);
       }
     } catch (error) {
       console.error("Logout error:", error);

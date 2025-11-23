@@ -149,6 +149,48 @@ Production build outputs to `dist/` directory
 npm run preview
 ```
 
+## 🔐 CORS & Environment Configuration
+
+This application features **automatic environment detection** - it knows whether you're in development or production and adjusts accordingly!
+
+### ✨ Automatic Setup
+
+**Development Mode (`npm run dev`):**
+- ✅ Frontend automatically connects to `http://localhost:5000/api`
+- ✅ Backend automatically allows all localhost ports
+- ✅ **Zero configuration needed!**
+
+**Production Mode (`npm run build`):**
+- Backend only allows your deployed frontend URL
+- Frontend connects to your production backend API
+- Secure CORS configuration
+
+### 📝 Quick Configuration
+
+**Development (Ready to go!):**
+```bash
+# Just run these commands - already configured!
+npm run dev              # Frontend
+cd server && npm run dev # Backend
+```
+
+**Production (Update these URLs):**
+
+1. **Backend** (`server/.env`):
+```env
+NODE_ENV=production
+CLIENT_URL=https://your-frontend-domain.com
+MONGODB_URI=mongodb+srv://your-atlas-connection
+```
+
+2. **Frontend** (`.env.production` - already exists):
+```env
+VITE_API_URL=https://your-backend-domain.com/api
+```
+
+**📚 Detailed Guide:** [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) - Complete setup instructions  
+**🔒 CORS Details:** [CORS_CONFIGURATION.md](./CORS_CONFIGURATION.md) - CORS deep dive & troubleshooting
+
 ## 🔌 API Endpoints
 
 Base URL: `http://localhost:5000/api`

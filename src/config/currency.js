@@ -9,6 +9,7 @@ import API_BASE_URL from './api';
 
 // Currency symbols map
 export const CURRENCY_SYMBOLS = {
+  NGN: '₦',
   USD: '$',
   EUR: '€',
   GBP: '£',
@@ -29,11 +30,11 @@ export const CURRENCY_SYMBOLS = {
   HKD: 'HK$',
   SEK: 'kr',
   NOK: 'kr',
-  NGN: '₦'
 };
 
 // Currency names map
 export const CURRENCY_NAMES = {
+  NGN: 'Nigerian Naira',
   USD: 'US Dollar',
   EUR: 'Euro',
   GBP: 'British Pound',
@@ -54,7 +55,6 @@ export const CURRENCY_NAMES = {
   HKD: 'Hong Kong Dollar',
   SEK: 'Swedish Krona',
   NOK: 'Norwegian Krone',
-  NGN: 'Nigerian Naira'
 };
 
 let cachedCurrency = null;
@@ -76,19 +76,19 @@ export async function getDefaultCurrency() {
     if (!response.ok) throw new Error('Failed to fetch settings');
     
     const data = await response.json();
-    cachedCurrency = data.defaultCurrency || 'USD';
+    cachedCurrency = data.defaultCurrency || 'NGN';
     lastFetch = Date.now();
     
     return cachedCurrency;
   } catch (error) {
     console.error('Error fetching default currency:', error);
-    return 'USD'; // Fallback to USD
+    return 'NGN'; // Fallback to NGN
   }
 }
 
 /**
  * Get currency symbol for a given currency code
- * @param {string} currencyCode - Currency code (e.g., 'USD')
+ * @param {string} currencyCode - Currency code (e.g., 'NGN')
  * @returns {string} Currency symbol (e.g., '$')
  */
 export function getCurrencySymbol(currencyCode) {
@@ -97,8 +97,8 @@ export function getCurrencySymbol(currencyCode) {
 
 /**
  * Get currency name for a given currency code
- * @param {string} currencyCode - Currency code (e.g., 'USD')
- * @returns {string} Currency name (e.g., 'US Dollar')
+ * @param {string} currencyCode - Currency code (e.g., 'NGN')
+ * @returns {string} Currency name (e.g., 'Nigerian Naira')
  */
 export function getCurrencyName(currencyCode) {
   return CURRENCY_NAMES[currencyCode] || currencyCode;
@@ -107,8 +107,8 @@ export function getCurrencyName(currencyCode) {
 /**
  * Format amount with currency
  * @param {number} amount - The amount to format
- * @param {string} currencyCode - Currency code (e.g., 'USD')
- * @returns {string} Formatted amount (e.g., '$1,234.56')
+ * @param {string} currencyCode - Currency code (e.g., 'NGN')
+ * @returns {string} Formatted amount (e.g., '₦1,234.56')
  */
 export function formatCurrency(amount, currencyCode) {
   const symbol = getCurrencySymbol(currencyCode);
