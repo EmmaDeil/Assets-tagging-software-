@@ -94,12 +94,13 @@ const Signup = () => {
           scale={1.1}
           threshold={0}
         >
-          <div className="w-full h-full relative">
+          <div className="h-full relative" style={{ width: '5000px'}}>
             {/* Background Image */}
             <img
               src="/auth-background.png"
               alt="AssetFlow Background"
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute h-full"
+              style={{width: '800px'}}
             />
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-700/85 to-blue-900/90"></div>
