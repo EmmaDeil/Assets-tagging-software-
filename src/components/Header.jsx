@@ -25,7 +25,6 @@ import { useAuth } from "../context/AuthContext";
 import API_BASE_URL from "../config/api";
 
 export default function Header({ activePage = "Dashboard", onNavigate }) {
-  const [currentUser, setCurrentUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -36,8 +35,8 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   );
   const [profileDropdownStyle, setProfileDropdownStyle] = useState({});
 
-  // Access auth context
-  const { logout } = useAuth();
+  // Access auth context and get the actual logged-in user
+  const { logout, user: currentUser } = useAuth();
 
   // Access notification context
   const {
@@ -47,42 +46,6 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
     markAllAsRead,
     deleteNotification,
   } = useContext(NotificationContext);
-
-  /**
-   * Fetch current user data from backend
-   * Automatically logs in the admin user (David Deil - admin@deil.com)
-   */
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        // Fetch the admin user by email
-        const response = await fetch(`${API_BASE_URL}/users`);
-        if (response.ok) {
-          const users = await response.json();
-          // Find the admin user (David Deil)
-          const adminUser = users.find(
-            (user) =>
-              user.email === "admin@deil.com" ||
-              user.role === "Administrator" ||
-              user.name === "David Deil"
-          );
-
-          if (adminUser) {
-            setCurrentUser(adminUser);
-            console.log("Logged in as:", adminUser.name, "-", adminUser.email);
-          } else if (users.length > 0) {
-            // Fallback to first user if admin not found
-            setCurrentUser(users[0]);
-            console.warn("Admin user not found, using first user");
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching current user:", error);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
 
   /**
    * Close menus when clicking outside
