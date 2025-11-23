@@ -102,7 +102,7 @@ export default function Settings() {
       setAppName(data.appName);
       setMaintenanceMode(data.maintenanceMode);
       setApiKey(data.apiKey);
-      setCompanyName(data.companyName || "QR Tag Manager");
+      setCompanyName(data.companyName || "AssetFlow");
       setPrimaryColor(data.primaryColor || "#3B82F6");
       setSecondaryColor(data.secondaryColor || "#10B981");
       setDefaultCurrency(data.defaultCurrency || "NGN");
@@ -112,7 +112,7 @@ export default function Settings() {
       setSessionTimeout(data.sessionTimeout || 30);
       setRecordsPerPage(data.recordsPerPage || 25);
       setEmailNotifications(data.emailNotifications || false);
-      setAssetIdPrefix(data.assetIdPrefix || "AST-");
+      setAssetIdPrefix(data.assetIdPrefix || "ASF-");
       setLanguage(data.language || "en");
       setMaintenanceReminderFrequency(
         data.maintenanceReminderFrequency || "monthly"

@@ -134,7 +134,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight cursor-pointer truncate"
           onClick={() => handleNavClick("Dashboard")}
         >
-          QR Tag Manager
+          AssetFlow
         </h2>
       </div>
 
