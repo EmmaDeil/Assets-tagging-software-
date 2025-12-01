@@ -36,7 +36,7 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
   const [profileDropdownStyle, setProfileDropdownStyle] = useState({});
 
   // Access auth context and get the actual logged-in user
-  const { logout, user: currentUser } = useAuth();
+  const { logout, user: currentUser, hasPermission } = useAuth();
 
   // Access notification context
   const {
@@ -162,9 +162,8 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           >
             Tags
           </button>
-          {/* Users - Only visible to Admin and Manager */}
-          {(currentUser?.role === "Administrator" ||
-            currentUser?.role === "Manager") && (
+          {/* Users - Only visible to users with viewUsers permission */}
+          {hasPermission("viewUsers") && (
             <button
               onClick={() => handleNavClick("Users")}
               className={`${
@@ -198,8 +197,8 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           >
             Reports
           </button>
-          {/* Settings - Only visible to Administrator */}
-          {currentUser?.role === "Administrator" && (
+          {/* Settings - Only visible to users with viewSettings permission */}
+          {hasPermission("viewSettings") && (
             <button
               onClick={() => handleNavClick("Settings")}
               className={`${
@@ -258,9 +257,8 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
               >
                 <span className="text-sm">🏷️ Tags</span>
               </button>
-              {/* Users - Only for Admin and Manager */}
-              {(currentUser?.role === "Administrator" ||
-                currentUser?.role === "Manager") && (
+              {/* Users - Only for users with viewUsers permission */}
+              {hasPermission("viewUsers") && (
                 <button
                   onClick={() => {
                     handleNavClick("Users");
@@ -303,8 +301,8 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
               >
                 <span className="text-sm">📊 Reports</span>
               </button>
-              {/* Settings - Only for Administrator */}
-              {currentUser?.role === "Administrator" && (
+              {/* Settings - Only for users with viewSettings permission */}
+              {hasPermission("viewSettings") && (
                 <button
                   onClick={() => {
                     handleNavClick("Settings");

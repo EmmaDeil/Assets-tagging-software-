@@ -26,7 +26,7 @@ import PermissionsManagement from "./PermissionsManagement";
 import { useAuth } from "../context/AuthContext";
 
 export default function Settings() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, hasPermission } = useAuth();
 
   // State for settings form
   const [appName, setAppName] = useState("QR Tag Manager");
@@ -337,8 +337,8 @@ export default function Settings() {
     </button>
   );
 
-  // Block access for non-Administrator roles
-  if (!currentUser || currentUser.role !== "Administrator") {
+  // Block access for users without viewSettings permission
+  if (!currentUser || !hasPermission("viewSettings")) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center max-w-md">
@@ -352,7 +352,7 @@ export default function Settings() {
             You do not have permission to access Settings.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            This feature is only available to Administrators.
+            This feature requires the 'View Settings' permission.
           </p>
         </div>
       </div>
