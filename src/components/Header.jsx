@@ -162,16 +162,20 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           >
             Tags
           </button>
-          <button
-            onClick={() => handleNavClick("Users")}
-            className={`${
-              activePage === "Users"
-                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
-                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
-            } transition-colors`}
-          >
-            Users
-          </button>
+          {/* Users - Only visible to Admin and Manager */}
+          {(currentUser?.role === "Administrator" ||
+            currentUser?.role === "Manager") && (
+            <button
+              onClick={() => handleNavClick("Users")}
+              className={`${
+                activePage === "Users"
+                  ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
+                  : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
+              } transition-colors`}
+            >
+              Users
+            </button>
+          )}
           <button
             onClick={() => handleNavClick("Maintenance")}
             className={`${
@@ -194,16 +198,19 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
           >
             Reports
           </button>
-          <button
-            onClick={() => handleNavClick("Settings")}
-            className={`${
-              activePage === "Settings"
-                ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
-                : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
-            } transition-colors`}
-          >
-            Settings
-          </button>
+          {/* Settings - Only visible to Administrator */}
+          {currentUser?.role === "Administrator" && (
+            <button
+              onClick={() => handleNavClick("Settings")}
+              className={`${
+                activePage === "Settings"
+                  ? "text-blue-600 text-sm font-bold leading-normal border-b-2 border-blue-600 pb-1"
+                  : "text-gray-600 hover:text-blue-600 text-sm font-medium leading-normal"
+              } transition-colors`}
+            >
+              Settings
+            </button>
+          )}
         </nav>
 
         {/* Mobile Menu Button - Only visible on mobile */}
@@ -251,19 +258,23 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
               >
                 <span className="text-sm">🏷️ Tags</span>
               </button>
-              <button
-                onClick={() => {
-                  handleNavClick("Users");
-                  setShowMobileMenu(false);
-                }}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                  activePage === "Users"
-                    ? "text-blue-600 font-semibold bg-blue-50"
-                    : "text-gray-700"
-                }`}
-              >
-                <span className="text-sm">👥 Users</span>
-              </button>
+              {/* Users - Only for Admin and Manager */}
+              {(currentUser?.role === "Administrator" ||
+                currentUser?.role === "Manager") && (
+                <button
+                  onClick={() => {
+                    handleNavClick("Users");
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                    activePage === "Users"
+                      ? "text-blue-600 font-semibold bg-blue-50"
+                      : "text-gray-700"
+                  }`}
+                >
+                  <span className="text-sm">👥 Users</span>
+                </button>
+              )}
               <button
                 onClick={() => {
                   handleNavClick("Maintenance");
@@ -292,19 +303,22 @@ export default function Header({ activePage = "Dashboard", onNavigate }) {
               >
                 <span className="text-sm">📊 Reports</span>
               </button>
-              <button
-                onClick={() => {
-                  handleNavClick("Settings");
-                  setShowMobileMenu(false);
-                }}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                  activePage === "Settings"
-                    ? "text-blue-600 font-semibold bg-blue-50"
-                    : "text-gray-700"
-                }`}
-              >
-                <span className="text-sm">⚙️ Settings</span>
-              </button>
+              {/* Settings - Only for Administrator */}
+              {currentUser?.role === "Administrator" && (
+                <button
+                  onClick={() => {
+                    handleNavClick("Settings");
+                    setShowMobileMenu(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                    activePage === "Settings"
+                      ? "text-blue-600 font-semibold bg-blue-50"
+                      : "text-gray-700"
+                  }`}
+                >
+                  <span className="text-sm">⚙️ Settings</span>
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -23,8 +23,11 @@
 import React, { useState, useEffect } from "react";
 import API_BASE_URL from "../config/api";
 import PermissionsManagement from "./PermissionsManagement";
+import { useAuth } from "../context/AuthContext";
 
 export default function Settings() {
+  const { user: currentUser } = useAuth();
+
   // State for settings form
   const [appName, setAppName] = useState("QR Tag Manager");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -333,6 +336,28 @@ export default function Settings() {
       <span>{label}</span>
     </button>
   );
+
+  // Block access for non-Administrator roles
+  if (!currentUser || currentUser.role !== "Administrator") {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center max-w-md">
+          <span className="material-symbols-outlined text-6xl text-red-500 dark:text-red-400 mb-4 block">
+            lock
+          </span>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Access Denied
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-2">
+            You do not have permission to access Settings.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            This feature is only available to Administrators.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">

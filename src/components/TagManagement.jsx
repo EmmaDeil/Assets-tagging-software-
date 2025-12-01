@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import API_BASE_URL from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 const TagManagement = () => {
+  const { user: currentUser } = useAuth();
   // Tag data - initially empty, will be populated from database
   const [tags, setTags] = useState([]);
   const [_loading, _setLoading] = useState(true);
@@ -258,15 +260,18 @@ const TagManagement = () => {
           <h1 className="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
             {/* Tag Management */}
           </h1>
-          <button
-            onClick={openCreateModal}
-            className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-blue-700 transition-colors"
-          >
-            <span className="material-symbols-outlined text-lg">
-              add_circle
-            </span>
-            <span className="truncate">Create New Tag</span>
-          </button>
+          {(currentUser?.role === "Administrator" ||
+            currentUser?.role === "Manager") && (
+            <button
+              onClick={openCreateModal}
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-600 text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 hover:bg-blue-700 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">
+                add_circle
+              </span>
+              <span className="truncate">Create New Tag</span>
+            </button>
+          )}
         </div>
 
         {/* Main Content Card */}
@@ -382,22 +387,27 @@ const TagManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(tag)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <span className="material-symbols-outlined text-lg">
-                              edit
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(tag)}
-                            className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <span className="material-symbols-outlined text-lg">
-                              delete
-                            </span>
-                          </button>
+                          {(currentUser?.role === "Administrator" ||
+                            currentUser?.role === "Manager") && (
+                            <>
+                              <button
+                                onClick={() => openEditModal(tag)}
+                                className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  edit
+                                </span>
+                              </button>
+                              <button
+                                onClick={() => openDeleteModal(tag)}
+                                className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  delete
+                                </span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
