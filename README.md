@@ -1,6 +1,18 @@
 # ASE Tag Software (Assets Tagging & Management)
 
 A comprehensive full-stack application for managing equipment/assets with QR code generation, advanced filtering, reporting, role-based permissions, and analytics capabilities. Built with React, Node.js, Express, and MongoDB.
+This README provides an overview of the project, setup instructions, features, and technical details.
+
+## Use Cases
+- IT Asset Management
+- Office Equipment Tracking
+- Maintenance Scheduling
+- Inventory Control
+- Library Asset Management
+- Laboratory Equipment Tracking
+- Facility Management
+- Medical Equipment Management
+
 
 ## 🚀 Features
 
