@@ -243,10 +243,26 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // Special handling for cost field to format with commas
+    if (name === "cost") {
+      // Remove all non-digit and non-decimal characters
+      const numericValue = value.replace(/[^0-9.]/g, "");
+      // Format with commas
+      const parts = numericValue.split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const formattedValue = parts.join(".");
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   /**
@@ -297,7 +313,7 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
         maintenancePeriod: formData.maintenancePeriod || "",
         purchaseDate: formData.acquisitionDate,
         acquisitionDate: formData.acquisitionDate,
-        cost: formData.cost ? parseFloat(formData.cost) : 0,
+        cost: formData.cost ? parseFloat(formData.cost.replace(/,/g, "")) : 0,
         currency: formData.currency,
         assignedTo: formData.assignedTo || "",
         department: formData.department || "",
@@ -841,14 +857,12 @@ const AssetRegistration = ({ onSuccess, onCancel }) => {
                   Cost ({formData.currency})
                 </p>
                 <input
-                  type="number"
+                  type="text"
                   name="cost"
                   value={formData.cost}
                   onChange={handleChange}
-                  step="0.0"
-                  min="0"
                   className="form-input flex-1 rounded-xl text-gray-800 dark:text-gray-100 focus:outline-0 focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500 h-12 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-3 text-base font-normal transition-all"
-                  placeholder="e.g., 1000"
+                  placeholder="e.g., 1,000.00"
                 />
               </label>
             </div>

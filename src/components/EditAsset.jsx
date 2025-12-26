@@ -166,7 +166,12 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         department: asset.department || "",
         model: asset.model || "",
         serial: asset.serial || "",
-        cost: asset.cost || "",
+        cost: asset.cost
+          ? asset.cost.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : "",
         currency: asset.currency || "",
         notes: asset.notes || "",
       });
@@ -257,10 +262,26 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // Special handling for cost field to format with commas
+    if (name === "cost") {
+      // Remove all non-digit and non-decimal characters
+      const numericValue = value.replace(/[^0-9.]/g, "");
+      // Format with commas
+      const parts = numericValue.split(".");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const formattedValue = parts.join(".");
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
     setHasChanges(true);
   };
 
@@ -343,7 +364,9 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
         department: formData.department,
         model: formData.model,
         serial: formData.serial,
-        cost: formData.cost ? parseFloat(formData.cost) : 0,
+        cost: formData.cost
+          ? parseFloat(formData.cost.toString().replace(/,/g, ""))
+          : 0,
         currency: formData.currency,
         notes: formData.notes,
         // Do NOT include attachedFiles - it's managed separately
@@ -624,14 +647,12 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                   Cost ({formData.currency})
                 </span>
                 <input
-                  type="number"
+                  type="text"
                   name="cost"
                   value={formData.cost}
                   onChange={handleChange}
-                  step="0.0"
-                  min="0"
                   className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 py-3 text-base"
-                  placeholder="e.g., 1000"
+                  placeholder="e.g., 1,000.00"
                 />
               </label>
 
