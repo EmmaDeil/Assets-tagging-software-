@@ -58,7 +58,7 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, API_URL]);
 
   /**
    * Add a new notification
