@@ -22,6 +22,7 @@
 
 import React, { createContext, useState, useEffect, useCallback } from "react";
 import API_BASE_URL from "../config/api";
+import { useAuth } from "./AuthContext";
 
 export const NotificationContext = createContext();
 
@@ -29,6 +30,7 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const API_URL = `${API_BASE_URL}/notifications`;
 
@@ -38,7 +40,12 @@ export const NotificationProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_URL);
+      const userId = user?._id;
+      const role = user?.role;
+
+      const url = userId ? `${API_URL}?userId=${userId}&role=${role}` : API_URL;
+
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setNotifications(data);
@@ -51,7 +58,7 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   /**
    * Add a new notification

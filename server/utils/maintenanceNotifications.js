@@ -7,7 +7,97 @@
 
 const Maintenance = require('../models/Maintenance');
 const Equipment = require('../models/Equipment');
+const User = require('../models/User');
 const { createNotification } = require('./notificationHelper');
+
+/**
+ * Check for maintenance due in the next 7 days and notify users based on role
+ * - Regular users: Get notified about maintenance in next 7 days
+ * - Admins: Get notified about all activities
+ */
+async function checkWeeklyMaintenanceNotifications() {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    // Find maintenance due in the next 7 days
+    const upcomingMaintenance = await Maintenance.find({
+      status: { $in: ['Scheduled', 'Not Started'] },
+      scheduledDate: { $gte: today, $lte: sevenDaysFromNow }
+    });
+
+    console.log(`Found ${upcomingMaintenance.length} maintenance due in next 7 days`);
+
+    // Get all users and admins
+    const users = await User.find({ status: 'Active', role: 'User' });
+    const admins = await User.find({ status: 'Active', role: 'Administrator' });
+
+    // Notify regular users about maintenance
+    for (const maintenance of upcomingMaintenance) {
+      const daysUntil = Math.ceil((maintenance.scheduledDate - today) / (1000 * 60 * 60 * 24));
+      
+      // Notify all regular users
+      for (const user of users) {
+        await createNotification({
+          type: 'maintenance',
+          title: 'Upcoming Maintenance',
+          message: `Maintenance scheduled for ${maintenance.assetName} in ${daysUntil} day(s). Service type: ${maintenance.serviceType}`,
+          userId: user._id.toString(),
+          assetId: maintenance.assetId,
+          priority: daysUntil <= 3 ? 'high' : 'medium',
+          actionUrl: `/maintenance/${maintenance._id}`
+        });
+      }
+
+      // Notify admins
+      for (const admin of admins) {
+        await createNotification({
+          type: 'maintenance',
+          title: 'Upcoming Maintenance',
+          message: `Maintenance scheduled for ${maintenance.assetName} in ${daysUntil} day(s). Service type: ${maintenance.serviceType}`,
+          userId: admin._id.toString(),
+          assetId: maintenance.assetId,
+          priority: daysUntil <= 3 ? 'high' : 'medium',
+          actionUrl: `/maintenance/${maintenance._id}`
+        });
+      }
+    }
+
+    return { success: true, notified: upcomingMaintenance.length };
+  } catch (error) {
+    console.error('Error checking weekly maintenance notifications:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Notify admins about all activities (asset changes, user actions, etc.)
+ */
+async function notifyAdminsOfActivity(activityData) {
+  try {
+    const admins = await User.find({ status: 'Active', role: 'Administrator' });
+    
+    for (const admin of admins) {
+      await createNotification({
+        type: 'info',
+        title: activityData.title || 'System Activity',
+        message: activityData.message,
+        userId: admin._id.toString(),
+        assetId: activityData.assetId || null,
+        priority: activityData.priority || 'low',
+        actionUrl: activityData.actionUrl || null
+      });
+    }
+
+    return { success: true, notified: admins.length };
+  } catch (error) {
+    console.error('Error notifying admins:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * Check for maintenance due today and send notifications
@@ -194,5 +284,7 @@ module.exports = {
   runMaintenanceNotificationChecks,
   checkDueMaintenanceNotifications,
   checkUpcomingMaintenanceReminders,
-  checkOverdueMaintenanceNotifications
+  checkOverdueMaintenanceNotifications,
+  checkWeeklyMaintenanceNotifications,
+  notifyAdminsOfActivity
 };

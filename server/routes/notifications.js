@@ -10,13 +10,37 @@ const Notification = require("../models/Notification");
 
 /**
  * GET /api/notifications
- * Get all notifications (sorted by newest first)
+ * Get all notifications for the current user (sorted by newest first)
+ * Query params: userId (required for user-specific notifications)
  */
 router.get("/", async (req, res) => {
   try {
-    const notifications = await Notification.find()
+    const { userId, role } = req.query;
+    
+    let query = {};
+    
+    // If userId provided, get notifications for that user or admin-only notifications (null userId)
+    if (userId) {
+      // Regular users get their own notifications
+      // Admins get their notifications + all general notifications (userId: null)
+      if (role === 'Administrator') {
+        query = {
+          $or: [
+            { userId: userId },
+            { userId: null } // General admin notifications
+          ]
+        };
+      } else {
+        query = { userId: userId };
+      }
+    } else {
+      // If no userId, return general notifications (backward compatibility)
+      query = { userId: null };
+    }
+    
+    const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
-      .limit(10); // Limit to last 10 notifications
+      .limit(50); // Increased limit for better user experience
     res.json(notifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -26,11 +50,32 @@ router.get("/", async (req, res) => {
 
 /**
  * GET /api/notifications/unread
- * Get unread notification count
+ * Get unread notification count for the current user
+ * Query params: userId, role
  */
 router.get("/unread", async (req, res) => {
   try {
-    const count = await Notification.countDocuments({ read: false });
+    const { userId, role } = req.query;
+    
+    let query = { read: false };
+    
+    if (userId) {
+      if (role === 'Administrator') {
+        query = {
+          read: false,
+          $or: [
+            { userId: userId },
+            { userId: null }
+          ]
+        };
+      } else {
+        query = { read: false, userId: userId };
+      }
+    } else {
+      query = { read: false, userId: null };
+    }
+    
+    const count = await Notification.countDocuments(query);
     res.json({ count });
   } catch (error) {
     console.error("Error counting unread notifications:", error);

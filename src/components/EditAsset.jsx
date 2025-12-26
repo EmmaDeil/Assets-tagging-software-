@@ -404,7 +404,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
           onClick={onCancel}
           className="text-gray-600 dark:text-gray-400 text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400"
         >
-          Home
+          Assets
         </button>
         <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
           /
@@ -413,7 +413,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
           onClick={onCancel}
           className="text-gray-600 dark:text-gray-400 text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400"
         >
-          Assets
+          {asset?.name || "Asset Details"}
         </button>
         <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">
           /
@@ -432,7 +432,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
 
       {/* Main Form Card */}
       <form onSubmit={handleSave}>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-0 sm:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Form Fields */}
             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -630,7 +630,7 @@ const EditAsset = ({ assetId, onSave, onCancel }) => {
                   onChange={handleChange}
                   step="0.0"
                   min="0"
-                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 text-base"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 px-3 py-3 text-base"
                   placeholder="e.g., 1000"
                 />
               </label>

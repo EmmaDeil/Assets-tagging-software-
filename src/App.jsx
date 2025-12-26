@@ -272,11 +272,13 @@ function AppContent() {
               assetId={editingAssetId}
               onSave={(updatedAsset) => {
                 console.log("Asset updated successfully:", updatedAsset);
-                setAssetsView("management");
+                setAssetsView("details");
+                setViewingAssetId(editingAssetId);
                 setEditingAssetId(null);
               }}
               onCancel={() => {
-                setAssetsView("management");
+                setAssetsView("details");
+                setViewingAssetId(editingAssetId);
                 setEditingAssetId(null);
               }}
             />

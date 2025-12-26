@@ -636,4 +636,64 @@ router.post('/check-overdue', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/maintenance/:id/send-reminder
+ * Send maintenance reminder to users (Admin only)
+ */
+router.post('/:id/send-reminder', async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const { createNotification } = require('../utils/notificationHelper');
+    
+    const maintenance = await Maintenance.findById(req.params.id);
+    
+    if (!maintenance) {
+      return res.status(404).json({ message: 'Maintenance record not found' });
+    }
+
+    // Calculate days until due
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const scheduledDate = new Date(maintenance.scheduledDate);
+    scheduledDate.setHours(0, 0, 0, 0);
+    const daysUntil = Math.ceil((scheduledDate - today) / (1000 * 60 * 60 * 24));
+
+    // Get all active users
+    const users = await User.find({ status: 'Active', role: 'User' });
+    
+    let notificationsSent = 0;
+    
+    // Send reminder to all users
+    for (const user of users) {
+      await createNotification({
+        type: 'maintenance',
+        title: 'Maintenance Reminder',
+        message: `Reminder: Maintenance for ${maintenance.assetName} is ${daysUntil > 0 ? `due in ${daysUntil} day(s)` : daysUntil === 0 ? 'due today' : `overdue by ${Math.abs(daysUntil)} day(s)`}. Service type: ${maintenance.serviceType}`,
+        userId: user._id.toString(),
+        assetId: maintenance.assetId,
+        priority: daysUntil <= 0 ? 'high' : daysUntil <= 3 ? 'medium' : 'low',
+        actionUrl: `/maintenance/${maintenance._id}`
+      });
+      notificationsSent++;
+    }
+
+    res.json({
+      message: `Reminder sent to ${notificationsSent} user(s)`,
+      count: notificationsSent,
+      maintenance: {
+        id: maintenance._id,
+        assetName: maintenance.assetName,
+        scheduledDate: maintenance.scheduledDate,
+        daysUntil
+      }
+    });
+  } catch (error) {
+    console.error('Error sending maintenance reminder:', error);
+    res.status(500).json({ 
+      message: 'Failed to send reminder',
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;

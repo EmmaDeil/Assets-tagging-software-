@@ -464,8 +464,8 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="flex-1 px-4 sm:px-6 lg:px-10 py-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="flex-1 py-1">
+        <div className="w-full p-3">
           {/* Breadcrumbs */}
           <div className="flex flex-wrap gap-2 pb-4">
             <button
@@ -576,7 +576,10 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                       )}{" "}
                       - {asset.currency || "NGN"}{" "}
                       {typeof asset.cost === "number"
-                        ? asset.cost.toFixed(2)
+                        ? asset.cost.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
                         : "0.00"}
                     </span>
                   </div>

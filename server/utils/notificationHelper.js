@@ -111,10 +111,49 @@ async function createAlertNotification(title, message, assetId = null) {
   }
 }
 
+/**
+ * Generic notification creation function
+ * @param {Object} options - Notification options
+ * @param {string} options.type - Notification type (maintenance, status_change, assignment, alert, info)
+ * @param {string} options.title - Notification title
+ * @param {string} options.message - Notification message
+ * @param {string} options.userId - User ID to send notification to (optional, null for admin-only)
+ * @param {string} options.assetId - Related asset ID (optional)
+ * @param {string} options.priority - Priority level (low, medium, high)
+ * @param {string} options.actionUrl - URL for action button (optional)
+ */
+async function createNotification({
+  type,
+  title,
+  message,
+  userId = null,
+  assetId = null,
+  priority = "medium",
+  actionUrl = null,
+}) {
+  try {
+    const notification = new Notification({
+      type,
+      title,
+      message,
+      userId,
+      assetId,
+      priority,
+      actionUrl,
+    });
+    await notification.save();
+    return notification;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   createMaintenanceNotification,
   createStatusChangeNotification,
   createAssignmentNotification,
   createNewAssetNotification,
   createAlertNotification,
+  createNotification,
 };
