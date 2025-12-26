@@ -109,7 +109,7 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
     if (asset && asset.attachedFiles) {
       setDocuments(asset.attachedFiles);
     }
-  }, [asset]);
+  }, [asset, asset?.attachedFiles]);
 
   // Function to load maintenance records
   const loadMaintenanceRecords = useCallback(async () => {
