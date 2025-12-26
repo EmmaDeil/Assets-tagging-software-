@@ -88,6 +88,7 @@ app.use((req, res, next) => {
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Request logging middleware (only in development)
 if (NODE_ENV === 'development') {

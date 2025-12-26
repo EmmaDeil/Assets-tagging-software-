@@ -29,7 +29,7 @@ export default function Settings() {
   const { user: currentUser, hasPermission } = useAuth();
 
   // State for settings form
-  const [appName, setAppName] = useState("QR Tag Manager");
+  const [appName, setAppName] = useState("");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [apiKey, setApiKey] = useState("Loading...");
   const [defaultCurrency, setDefaultCurrency] = useState("NGN");
@@ -64,9 +64,11 @@ export default function Settings() {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
 
   // Branding state
-  const [companyName, setCompanyName] = useState("QR Tag Manager");
-  const [primaryColor, setPrimaryColor] = useState("#3B82F6");
-  const [secondaryColor, setSecondaryColor] = useState("#10B981");
+  const [companyVision, setCompanyVision] = useState("");
+  const [companyMission, setCompanyMission] = useState("");
+  const [companyMotto, setCompanyMotto] = useState("");
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
 
   // System stats state
   const [stats, setStats] = useState(null);
@@ -105,9 +107,12 @@ export default function Settings() {
       setAppName(data.appName);
       setMaintenanceMode(data.maintenanceMode);
       setApiKey(data.apiKey);
-      setCompanyName(data.companyName || "AssetFlow");
-      setPrimaryColor(data.primaryColor || "#3B82F6");
-      setSecondaryColor(data.secondaryColor || "#10B981");
+      setCompanyVision(data.companyVision || "");
+      setCompanyMission(data.companyMission || "");
+      setCompanyMotto(data.companyMotto || "");
+      setLogoPreview(
+        data.companyLogo ? `${API_BASE_URL}${data.companyLogo}` : null
+      );
       setDefaultCurrency(data.defaultCurrency || "NGN");
       setDateFormat(data.dateFormat || "MM/DD/YYYY");
       setAutoBackup(data.autoBackup !== undefined ? data.autoBackup : true);
@@ -214,21 +219,30 @@ export default function Settings() {
   const handleSaveBranding = async () => {
     try {
       setSaving(true);
-      const response = await fetch(`${API_BASE_URL}/settings`, {
+
+      const formData = new FormData();
+      formData.append("companyVision", companyVision);
+      formData.append("companyMission", companyMission);
+      formData.append("companyMotto", companyMotto);
+
+      if (companyLogo) {
+        formData.append("companyLogo", companyLogo);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/settings/branding`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          companyName,
-          primaryColor,
-          secondaryColor,
-        }),
+        body: formData,
       });
 
       if (!response.ok) throw new Error("Failed to save branding");
 
+      const data = await response.json();
+      if (data.companyLogo) {
+        setLogoPreview(data.companyLogo);
+      }
+
       showToast("Branding settings saved successfully!", "success");
+      setCompanyLogo(null); // Clear the file input after successful upload
     } catch (error) {
       console.error("Error saving branding:", error);
       showToast("Failed to save branding settings. Please try again.", "error");
@@ -403,22 +417,27 @@ export default function Settings() {
                   </p>
                 </div>
                 <div className="p-6 space-y-6">
-                  {/* Application Name */}
+                  {/* Company Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
                     <label
                       className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
                       htmlFor="appName"
                     >
-                      Application Name
+                      Company Name
                     </label>
                     <div className="sm:col-span-2">
                       <input
                         className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
                         id="appName"
                         type="text"
+                        placeholder="e.g., Acme Corporation"
                         value={appName}
                         onChange={(e) => setAppName(e.target.value)}
                       />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Company name will be used in reports, exports, and
+                        printed documents
+                      </p>
                     </div>
                   </div>
 
@@ -1121,104 +1140,160 @@ export default function Settings() {
                 </p>
               </div>
               <div className="p-6 space-y-6">
-                {/* Company Name */}
+                {/* Company Vision */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
                   <label
                     className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
-                    htmlFor="companyName"
+                    htmlFor="companyVision"
                   >
-                    Company Name
+                    Company's Vision
+                  </label>
+                  <div className="sm:col-span-2">
+                    <textarea
+                      className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                      id="companyVision"
+                      rows="3"
+                      value={companyVision}
+                      onChange={(e) => setCompanyVision(e.target.value)}
+                      placeholder="Enter your company's vision statement"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Your company's long-term aspirations and goals
+                    </p>
+                  </div>
+                </div>
+
+                {/* Company Mission */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                  <label
+                    className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                    htmlFor="companyMission"
+                  >
+                    Company's Mission
+                  </label>
+                  <div className="sm:col-span-2">
+                    <textarea
+                      className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
+                      id="companyMission"
+                      rows="3"
+                      value={companyMission}
+                      onChange={(e) => setCompanyMission(e.target.value)}
+                      placeholder="Enter your company's mission statement"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Your company's core purpose and values
+                    </p>
+                  </div>
+                </div>
+
+                {/* Company Motto */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
+                  <label
+                    className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
+                    htmlFor="companyMotto"
+                  >
+                    Company's Motto
                   </label>
                   <div className="sm:col-span-2">
                     <input
                       className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm"
-                      id="companyName"
+                      id="companyMotto"
                       type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Enter company name"
+                      value={companyMotto}
+                      onChange={(e) => setCompanyMotto(e.target.value)}
+                      placeholder="Enter your company's motto or tagline"
                     />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      A short, memorable phrase that represents your brand
+                    </p>
                   </div>
                 </div>
 
-                {/* Primary Color */}
+                {/* Company Logo */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
                   <label
                     className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
-                    htmlFor="primaryColor"
+                    htmlFor="companyLogo"
                   >
-                    Primary Color
-                  </label>
-                  <div className="sm:col-span-2 flex items-center gap-3">
-                    <input
-                      className="w-16 h-10 rounded-md cursor-pointer"
-                      id="primaryColor"
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                    />
-                    <input
-                      className="flex-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm font-mono"
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      placeholder="#3B82F6"
-                    />
-                  </div>
-                </div>
-
-                {/* Secondary Color */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
-                  <label
-                    className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2"
-                    htmlFor="secondaryColor"
-                  >
-                    Secondary Color
-                  </label>
-                  <div className="sm:col-span-2 flex items-center gap-3">
-                    <input
-                      className="w-16 h-10 rounded-md cursor-pointer"
-                      id="secondaryColor"
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                    />
-                    <input
-                      className="flex-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-3 py-2 text-sm font-mono"
-                      type="text"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      placeholder="#10B981"
-                    />
-                  </div>
-                </div>
-
-                {/* Color Preview */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-start">
-                  <label className="text-sm font-medium text-gray-900 dark:text-white sm:pt-2">
-                    Preview
+                    Company Logo
                   </label>
                   <div className="sm:col-span-2">
-                    <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div
-                        className="w-12 h-12 rounded-lg shadow-md"
-                        style={{ backgroundColor: primaryColor }}
-                        title="Primary Color"
-                      ></div>
-                      <div
-                        className="w-12 h-12 rounded-lg shadow-md"
-                        style={{ backgroundColor: secondaryColor }}
-                        title="Secondary Color"
-                      ></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          Color Scheme
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          These colors will be applied throughout the
-                          application
-                        </p>
-                      </div>
+                    <div className="space-y-4">
+                      {/* Logo Preview */}
+                      {logoPreview && (
+                        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                          <img
+                            src={logoPreview}
+                            alt="Company Logo"
+                            className="h-20 w-20 object-contain rounded-lg"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              Current Logo
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              This logo will appear on exported documents
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setLogoPreview(null);
+                              setCompanyLogo(null);
+                            }}
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+                            title="Remove logo"
+                          >
+                            <span className="material-symbols-outlined text-lg">
+                              delete
+                            </span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Upload Button */}
+                      <label
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                        htmlFor="companyLogo"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <span className="material-symbols-outlined text-4xl text-gray-400 dark:text-gray-500 mb-2">
+                            upload_file
+                          </span>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">
+                              Click to upload
+                            </span>{" "}
+                            or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            PNG, JPG or SVG (Max 2MB)
+                          </p>
+                        </div>
+                        <input
+                          id="companyLogo"
+                          type="file"
+                          className="hidden"
+                          accept="image/png,image/jpeg,image/svg+xml"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                showToast(
+                                  "File size must be less than 2MB",
+                                  "error"
+                                );
+                                return;
+                              }
+                              setCompanyLogo(file);
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setLogoPreview(reader.result);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -1228,13 +1303,15 @@ export default function Settings() {
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                 <button
                   onClick={() => {
-                    setCompanyName("AssetManager");
-                    setPrimaryColor("#3B82F6");
-                    setSecondaryColor("#10B981");
+                    setCompanyVision("");
+                    setCompanyMission("");
+                    setCompanyMotto("");
+                    setCompanyLogo(null);
+                    setLogoPreview(null);
                   }}
                   className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Reset
+                  Clear
                 </button>
                 <button
                   onClick={handleSaveBranding}

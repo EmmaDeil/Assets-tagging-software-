@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from "react";
 import API_BASE_URL from "../config/api";
 
-export default function MaintenanceCalendar() {
+export default function MaintenanceCalendar({ onBack }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [maintenanceData, setMaintenanceData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -154,13 +154,24 @@ export default function MaintenanceCalendar() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Maintenance Calendar
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Visual schedule of all maintenance activities
-          </p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+              title="Back to Maintenance"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Maintenance Calendar
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Visual schedule of all maintenance activities
+            </p>
+          </div>
         </div>
         <button
           onClick={goToToday}

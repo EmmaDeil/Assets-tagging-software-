@@ -308,7 +308,14 @@ function AppContent() {
           {currentPage === "MaintenanceRecords" && <MaintenanceRecords />}
 
           {/* Maintenance Calendar Page */}
-          {currentPage === "MaintenanceCalendar" && <MaintenanceCalendar />}
+          {currentPage === "MaintenanceCalendar" && (
+            <MaintenanceCalendar
+              onBack={() => {
+                setCurrentPage("Maintenance");
+                localStorage.setItem("currentPage", "Maintenance");
+              }}
+            />
+          )}
 
           {/* Settings Page */}
           {currentPage === "Settings" && <Settings />}

@@ -7,10 +7,44 @@
 
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const Settings = require('../models/Settings');
 const Equipment = require('../models/Equipment');
 const Activity = require('../models/Activity');
 const { clearMaintenanceModeCache } = require('../middleware/maintenanceMode');
+
+// Configure multer for logo upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads/branding');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'logo-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|svg/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images (PNG, JPG, SVG) are allowed'));
+    }
+  }
+});
 
 /**
  * GET /api/settings
@@ -74,7 +108,9 @@ router.put('/', async (req, res) => {
       'logoUrl',
       'primaryColor',
       'secondaryColor',
-      'companyName',
+      'companyVision',
+      'companyMission',
+      'companyMotto',
       'emailNotificationsEnabled',
       'emailHost',
       'emailPort',
@@ -132,6 +168,65 @@ router.post('/regenerate-api-key', async (req, res) => {
     console.error('Error regenerating API key:', error);
     res.status(500).json({ 
       message: 'Error regenerating API key',
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * PUT /api/settings/branding
+ * Update branding settings (company vision, mission, motto, and logo)
+ */
+router.put('/branding', upload.single('companyLogo'), async (req, res) => {
+  try {
+    let settings = await Settings.findOne({ isSingleton: true });
+    
+    if (!settings) {
+      settings = new Settings({ isSingleton: true });
+    }
+    
+    // Update company vision
+    if (req.body.companyVision !== undefined) {
+      settings.companyVision = req.body.companyVision;
+    }
+    
+    // Update company mission
+    if (req.body.companyMission !== undefined) {
+      settings.companyMission = req.body.companyMission;
+    }
+    
+    // Update company motto
+    if (req.body.companyMotto !== undefined) {
+      settings.companyMotto = req.body.companyMotto;
+    }
+    
+    // Handle logo upload
+    if (req.file) {
+      // Delete old logo if exists
+      if (settings.companyLogo) {
+        const oldLogoPath = path.join(__dirname, '..', settings.companyLogo.replace('/api', ''));
+        if (fs.existsSync(oldLogoPath)) {
+          fs.unlinkSync(oldLogoPath);
+        }
+      }
+      
+      // Store new logo path
+      settings.companyLogo = `/api/uploads/branding/${req.file.filename}`;
+    }
+    
+    await settings.save();
+    
+    res.json({
+      message: 'Branding settings updated successfully',
+      companyVision: settings.companyVision,
+      companyMission: settings.companyMission,
+      companyMotto: settings.companyMotto,
+      companyLogo: settings.companyLogo
+    });
+  } catch (error) {
+    console.error('Error updating branding:', error);
+    res.status(500).json({ 
+      message: 'Error updating branding settings',
       error: error.message 
     });
   }

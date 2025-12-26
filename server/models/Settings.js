@@ -92,6 +92,10 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  companyLogo: {
+    type: String,
+    default: ''
+  },
   primaryColor: {
     type: String,
     default: '#3B82F6' // Blue
@@ -100,9 +104,17 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: '#10B981' // Green
   },
-  companyName: {
+  companyVision: {
     type: String,
-    default: 'QR Tag Manager'
+    default: ''
+  },
+  companyMission: {
+    type: String,
+    default: ''
+  },
+  companyMotto: {
+    type: String,
+    default: ''
   },
   
   // Email Notifications Settings
