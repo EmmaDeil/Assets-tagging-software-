@@ -220,42 +220,6 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
   };
 
   /**
-   * Handle document deletion
-   */
-  const handleDeleteDocument = async (fileId, fileName) => {
-    if (!window.confirm(`Are you sure you want to delete "${fileName}"?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/equipment/${asset.id}/document/${fileId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        // Refresh data from server to get updated attachedFiles
-        await refreshData();
-        showToastNotification("Document deleted successfully!", "success");
-      } else {
-        const error = await response.json();
-        showToastNotification(
-          error.message || "Failed to delete document",
-          "error"
-        );
-      }
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      showToastNotification(
-        "Failed to delete document. Please try again.",
-        "error"
-      );
-    }
-  };
-
-  /**
    * Format file size for display
    */
   const formatFileSize = (bytes) => {
@@ -842,7 +806,16 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                             key={doc.id}
                             className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                           >
-                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div
+                              className="flex items-center space-x-3 flex-1 min-w-0 cursor-pointer"
+                              onClick={() =>
+                                window.open(
+                                  `${API_BASE_URL}/equipment/${asset.id}/document/${doc.id}/view`,
+                                  "_blank"
+                                )
+                              }
+                              title="Click to view"
+                            >
                               <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl">
                                 {getFileIcon(doc.type)}
                               </span>
@@ -867,26 +840,14 @@ const AssetDetails = ({ assetId, onClose, onEdit }) => {
                               <a
                                 href={`${API_BASE_URL}/equipment/${asset.id}/document/${doc.id}/download`}
                                 download={doc.name}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
                                 title="Download"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <span className="material-symbols-outlined text-lg">
                                   download
                                 </span>
                               </a>
-                              <button
-                                onClick={() =>
-                                  handleDeleteDocument(doc.id, doc.name)
-                                }
-                                className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
-                                title="Delete"
-                              >
-                                <span className="material-symbols-outlined text-lg">
-                                  delete
-                                </span>
-                              </button>
                             </div>
                           </div>
                         ))}

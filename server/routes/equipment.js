@@ -519,6 +519,43 @@ router.delete('/:id/document/:fileId', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/equipment/:id/document/:fileId/view
+ * @desc    View a document from an asset in the browser (retrieves from MongoDB)
+ * @access  Public
+ */
+router.get('/:id/document/:fileId/view', async (req, res) => {
+  try {
+    const equipment = await Equipment.findOne({ id: req.params.id });
+
+    if (!equipment) {
+      return res.status(404).json({ message: 'Equipment not found' });
+    }
+
+    // Find the file
+    const file = equipment.attachedFiles.find(
+      f => f.id === req.params.fileId
+    );
+
+    if (!file) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    // Convert base64 back to binary
+    const fileBuffer = Buffer.from(file.data, 'base64');
+
+    // Set headers for inline viewing (browser will display if possible)
+    res.setHeader('Content-Type', file.type);
+    res.setHeader('Content-Disposition', `inline; filename="${file.name}"`);
+    res.setHeader('Content-Length', fileBuffer.length);
+
+    res.send(fileBuffer);
+  } catch (error) {
+    console.error('Error viewing file:', error);
+    res.status(500).json({ message: 'Error viewing file', error: error.message });
+  }
+});
+
+/**
  * @route   GET /api/equipment/:id/document/:fileId/download
  * @desc    Download a document from an asset (retrieves from MongoDB)
  * @access  Public
