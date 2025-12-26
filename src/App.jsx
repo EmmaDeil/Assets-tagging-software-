@@ -205,8 +205,8 @@ function AppContent() {
       />
 
       {/* Main Content */}
-      <main className="px-4 sm:px-8 lg:px-10 flex flex-1 justify-center py-8 main-content">
-        <div className="flex flex-col w-full max-w-7xl">
+      <main className="flex flex-1 justify-center py-8 main-content">
+        <div className="flex flex-col w-full p-3">
           {/* Dashboard Page */}
           {currentPage === "Dashboard" && (
             <Dashboard

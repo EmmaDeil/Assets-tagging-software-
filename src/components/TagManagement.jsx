@@ -254,7 +254,7 @@ const TagManagement = () => {
 
   return (
     <>
-      <div className="flex flex-col w-full max-w-7xl mx-auto">
+      <div className="flex flex-col w-full p-3">
         {/* Page Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <h1 className="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">

@@ -1348,7 +1348,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto gap-8">
+    <div className="flex flex-col w-full p-3 gap-8">
       {/* Page Header */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <h1 className="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-[-0.03em]">

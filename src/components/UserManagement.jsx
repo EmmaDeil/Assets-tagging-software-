@@ -282,7 +282,7 @@ const UserManagement = () => {
 
   return (
     <>
-      <div className="flex flex-col w-full max-w-7xl mx-auto">
+      <div className="flex flex-col w-full p-3">
         {/* Page Header */}
         <div className="flex flex-wrap justify-between gap-4 items-center mb-6">
           <h1 className="text-4xl font-black leading-tight tracking-[-0.033em] text-gray-900 dark:text-white">
