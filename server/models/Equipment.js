@@ -137,12 +137,12 @@ const equipmentSchema = new mongoose.Schema(
     },
     attachedFiles: [
       {
-        name: String,
-        type: String,
-        id: String,
-        data: String, // Base64 encoded file data stored in MongoDB
-        uploadDate: Date,
-        size: Number, // File size in bytes
+        name: { type: String },
+        type: { type: String },
+        id: { type: String },
+        data: { type: String }, // Base64 encoded file data stored in MongoDB
+        uploadDate: { type: Date },
+        size: { type: Number }, // File size in bytes
       },
     ],
     assignedTo: {

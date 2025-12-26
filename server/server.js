@@ -37,33 +37,6 @@ connectDB();
 app.set('trust proxy', 1);
 
 // CORS Configuration
-// Determine allowed origins based on environment
-const getAllowedOrigins = () => {
-  if (NODE_ENV === 'production') {
-    // In production, use the deployed frontend URL from environment variable
-    const productionOrigins = [
-      process.env.CLIENT_URL, 
-      process.env.RENDER_EXTERNAL_URL
-    ].filter(Boolean); // Remove undefined/null values
-    
-    return productionOrigins.length > 0 ? productionOrigins : ['*'];
-  } else {
-    // In development, allow localhost with various ports
-    return [
-      'http://localhost:5173', // Vite default port
-      'http://localhost:3000', // Common React port
-      'http://localhost:5000', // Server port
-      'http://localhost:4173', // Vite preview port
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5000',
-      'http://127.0.0.1:4173'
-    ];
-  }
-};
-
-const allowedOrigins = getAllowedOrigins();
-
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, etc.)
@@ -71,14 +44,28 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      callback(null, true);
+    // In development, allow any localhost or 127.0.0.1 origin
+    if (NODE_ENV === 'development') {
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        console.log(`✅ CORS allowed origin: ${origin}`);
+        return callback(null, true);
+      }
     } else {
-      console.log(`❌ CORS blocked origin: ${origin}`);
-      console.log(`✅ Allowed origins: ${allowedOrigins.join(', ')}`);
-      callback(new Error('Not allowed by CORS'));
+      // In production, check against specific allowed origins
+      const productionOrigins = [
+        process.env.CLIENT_URL, 
+        process.env.RENDER_EXTERNAL_URL
+      ].filter(Boolean);
+      
+      if (productionOrigins.length === 0 || productionOrigins.includes(origin)) {
+        console.log(`✅ CORS allowed origin: ${origin}`);
+        return callback(null, true);
+      }
     }
+
+    // Reject origin
+    console.log(`❌ CORS blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   optionsSuccessStatus: 200,
@@ -179,7 +166,7 @@ const server = app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${NODE_ENV} mode on port ${PORT}`);
   console.log(`📡 API: ${baseUrl}/api`);
   console.log(`💚 Health: ${baseUrl}/api/health`);
-  console.log(`🔓 CORS allowed origins: ${allowedOrigins.join(', ')}\n`);
+  console.log(`🔓 CORS: ${NODE_ENV === 'development' ? 'Allowing all localhost origins' : 'Production origins only'}\n`);
   
   if (NODE_ENV === 'production') {
     console.log(`🌐 Your API is publicly accessible at: ${baseUrl}`);
